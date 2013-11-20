@@ -1,5 +1,12 @@
-var MtGoxClient = require("mtgox-apiv2");
-var client;
+var express = require('express');
+var app = express();
+
+var MtGoxRESTClient = require('mtgox-apiv2');
+var MtGoxStreaming = require('node-mtgox-client-streaming');
+var restClient;
+var streamingClient;
+
+app.listen(5001);
 
 init();
 
@@ -25,7 +32,9 @@ function init()
 
 function loadClientWithKeyAndSecret(key, secret)
 {
-	client = new MtGoxClient(key, secret);
+	restClient = new MtGoxRESTClient(key, secret);
+	streamingClient = new MtGoxStreaming.MtGox(key, secret);
+
 	handleInitializedClient();
 
 	console.log('Initialized client with key:' + key + ' and secret:' + secret);
@@ -33,9 +42,21 @@ function loadClientWithKeyAndSecret(key, secret)
 
 function handleInitializedClient()
 {
-	client.ticker(function(err, json) {
-	    if (err) { throw err; }
-	    console.log("---------------Ticker:--------------");
-	    console.log(json);
-	});
+	// restClient.ticker(function(err, json) {
+	//     if (err) { throw err; }
+	//     console.log("---------------Ticker:--------------");
+	//     console.log(json);
+	// });
+	// streamingClient.subscribe('ticker');
+
+	// streamingClient.onMessage(function(data) {
+	// 	console.log("Message: " + data);
+	// });
+
+	// streamingClient.authEmit({
+	// 	call: 'private/info'
+	// });
+	
+	console.log(streamingClient);
 }
+
