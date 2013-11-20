@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "express": "3.x",
-    "mtgox-apiv2": "1.0.5"
+    "mtgox-apiv2": "1.0.5",
+    "node-mtgox-client-streaming": "0.1.0"
   }
 }

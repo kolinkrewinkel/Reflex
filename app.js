@@ -20,7 +20,22 @@ function init()
 		return;
 	}
 
-	client = new MtGoxClient(config.api_key, config.secret);
+	loadClientWithKeyAndSecret(config.api_key, config.secret);
+}
 
-	console.log('Initialized client with key:' + config.api_key + ' and secret:' + config.secret);
+function loadClientWithKeyAndSecret(key, secret)
+{
+	client = new MtGoxClient(key, secret);
+	handleInitializedClient();
+
+	console.log('Initialized client with key:' + key + ' and secret:' + secret);
+}
+
+function handleInitializedClient()
+{
+	client.ticker(function(err, json) {
+	    if (err) { throw err; }
+	    console.log("---------------Ticker:--------------");
+	    console.log(json);
+	});
 }
