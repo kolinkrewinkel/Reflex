@@ -1,4 +1,4 @@
-var MtGoxClient = require("./mtgox");
+var MtGoxClient = require("mtgox-apiv2");
 var client;
 
 init();
