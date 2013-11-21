@@ -5,11 +5,12 @@ var Bitstamp = require('bitstamp');
 var bitstampClient = null;
 
 // Finances 
-var orderRequired = true;
+var startingOrderRequired = true;
+var orderRequired = false;
 var entryPrice = null;
 var lastPriceObserved = null;
-var positiveVarianceThreshold = 0.05;
-var negativeVarianceThreshold = 0.05;
+var positiveVarianceThreshold = 0.0125;
+var negativeVarianceThreshold = 0.005;
 
 
 init();
@@ -40,7 +41,7 @@ function intializeBitstampClient(key, secret, client_id)
 
 	console.log("Initialized client with key: " + key + " secret: " + secret + " client ID: " + client_id);
 
-	beginRefreshingWithInterval(0.5);
+	beginRefreshingWithInterval(1.5);
 }
 
 function beginRefreshingWithInterval(seconds)
@@ -52,9 +53,15 @@ function beginRefreshingWithInterval(seconds)
 
 function tickerUpdated(error, results)
 {
+	if (error || results === undefined)
+	{
+		console.log("Ticker update failed.");
+		return;
+	}
+
 	var currentUSDValue = results["last"];
 
-	if (entryPrice == null && orderRequired)
+	if (entryPrice == null && startingOrderRequired)
 	{
 		enterAtPrice(currentUSDValue);
 	}
@@ -72,16 +79,20 @@ function tickerUpdated(error, results)
 		var maximumPriceToBuy = entryPrice * (1.00 - negativeVarianceThreshold);
 
 		var change = currentUSDValue - entryPrice;
-		console.log("     Entry: $" + entryPrice + "\n   Current: $" + currentUSDValue + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 
-		// if (currentUSDValue >= minimumPriceToSell)
-		// {
-		// 	sellAtMarket();
-		// }
-		// else if (currentUSDValue <= maximumPriceToBuy)
-		// {
-		// 	enterAtMarket();
-		// }
+		if (!orderRequired)
+		{
+			console.log("     Entry: $" + entryPrice + "\n   Current: $" + currentUSDValue + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
+		}
+
+		if (currentUSDValue >= minimumPriceToSell && !orderRequired)
+		{
+			sellAtPrice(currentUSDValue);
+		}
+		else if (currentUSDValue <= maximumPriceToBuy && orderRequired)
+		{
+			enterAtPrice(currentUSDValue);
+		}
 
 		lastPriceObserved = currentUSDValue;
 	}
@@ -89,6 +100,7 @@ function tickerUpdated(error, results)
 
 function enterAtPrice(price)
 {
+	startingOrderRequired = false;
 	orderRequired = false;
 	// bitstampClient.buy(1, price, marketEntered);
 
@@ -98,12 +110,17 @@ function enterAtPrice(price)
 function marketEntered(error, result)
 {
 	entryPrice = result["price"];
-	orderRequired = false;
+	startingOrderRequired = false;
+
+	console.log("\n<<<<<<<<<<<<<<<<<<\nEntered at price: " + entryPrice + "\n<<<<<<<<<<<<<<<<<<\n");
 }
 
-function sellAtMarket()
+function sellAtPrice(price)
 {
+	console.log("\n>>>>>>>>>>>>>>>>>>\nSold at price: " + price + " @ profit of " + (price - entryPrice) + " with gain of " + (((price - entryPrice)/entryPrice) * 100) + "%\n>>>>>>>>>>>>>>>>>>\n");
 
+	orderRequired = true;
+	entryPrice = price;
 }
 
 app.listen(5001);
