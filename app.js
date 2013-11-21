@@ -1,12 +1,14 @@
 var express = require('express');
 var app = express();
 
-var MtGoxRESTClient = require('mtgox-apiv2');
-var MtGoxStreaming = require('node-mtgox-client-streaming');
-var restClient;
-var streamingClient;
+var Bitstamp = require('bitstamp');
+var bitstampClient = UNDEFINED;
 
-app.listen(5001);
+// Finances 
+var entryPrice = UNDEFINED;
+var positiveVarianceThreshold = 0.05;
+var negativeVarianceThreshold = 0.05;
+
 
 init();
 
@@ -27,36 +29,48 @@ function init()
 		return;
 	}
 
-	loadClientWithKeyAndSecret(config.api_key, config.secret);
+	intializeBitstampClient(config.api_key, config.secret, config.client_id);
 }
 
-function loadClientWithKeyAndSecret(key, secret)
+function intializeBitstampClient(key, secret, client_id)
 {
-	restClient = new MtGoxRESTClient(key, secret);
-	streamingClient = new MtGoxStreaming.MtGox(key, secret);
-
-	handleInitializedClient();
-
-	console.log('Initialized client with key:' + key + ' and secret:' + secret);
+	bitstampClient = new Bitstamp(key, secret, client_id);
+	enterAtMarket();
 }
 
-function handleInitializedClient()
+function beginRefreshingWithInterval(seconds)
+{	
+	setInterval(function() {
+		bitstampClient.ticker(tickerUpdated);
+	}, seconds * 1000);
+}
+
+function tickerUpdated(results)
 {
-	// restClient.ticker(function(err, json) {
-	//     if (err) { throw err; }
-	//     console.log("---------------Ticker:--------------");
-	//     console.log(json);
-	// });
-	// streamingClient.subscribe('ticker');
+	var currentUSDValue = results;
+	var minimumPriceToSell = entryPrice * (1.00 + positiveVarianceThreshold);
+	var maximumPriceToBuy = entryPrice * (1.00 - negativeVarianceThreshold);
 
-	// streamingClient.onMessage(function(data) {
-	// 	console.log("Message: " + data);
-	// });
-
-	// streamingClient.authEmit({
-	// 	call: 'private/info'
-	// });
-	
-	console.log(streamingClient);
+	if (currentUSDValue >= minimumPriceToSell)
+	{
+		sellAtMarket();
+	}
+	else if (currentUSDValue <= maximumPriceToBuy)
+	{
+		enterAtMarket();shit
+	}
 }
 
+function enterAtMarket()
+{
+	bitstampClient.buy(1, null, marketEntered);
+}
+
+function marketEntered(result)
+{
+	entryPrice = result;
+
+	beginRefreshingWithInterval(0.5);
+}
+
+app.listen(5001);
