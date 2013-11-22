@@ -13,7 +13,8 @@ var entryPrice = null;
 var lastPriceObserved = null;
 var positiveVarianceThreshold = 0.015;
 var reEntryThreshold = 0.0075;
-var dropExitThreshold = 0.075;
+var dropExitThreshold = 0.03333;
+var profit = 0.00;
 
 app.listen(5001);
 init();
@@ -78,8 +79,7 @@ function tickerUpdated(error, results)
 		}
 
 		var minimumPriceToSell = entryPrice * (1.00 + positiveVarianceThreshold);
-		var maximumPriceToBuy = entryPrice * (1.00 - reEntryThreshold);
-		var dropExitThreshold = 0.075;
+		var maximumPriceToBuy = entryPrice * (1.00 - reEntryThreshold);		
 
 		var change = currentUSDValue - entryPrice;
 
@@ -108,12 +108,14 @@ function tickerUpdated(error, results)
 }
 
 function enterAtPrice(price)
-{
+{	
 	startingOrderRequired = false;
 	orderRequired = false;
 	// bitstampClient.buy(1, price, marketEntered);
 
 	marketEntered(null, {"price": price});
+
+	commissionedEventOccurred(price);
 }
 
 function marketEntered(error, result)
@@ -135,6 +137,17 @@ function sellAtPrice(price)
 		console.log("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nSold at price: " + price + " @ loss of " + (price - entryPrice) + "(" + (((price - entryPrice)/entryPrice) * 100) + "%)\nRe-entering at " + (price * (1.00 - reEntryThreshold)) + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 	}
 
+	profit += price - entryPrice;
+
 	orderRequired = true;
 	entryPrice = price;
+
+	commissionedEventOccurred(price);
+}
+
+function commissionedEventOccurred(price)
+{
+	profit -= price * 0.005;
+
+	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n")
 }
