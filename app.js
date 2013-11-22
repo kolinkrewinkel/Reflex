@@ -1,3 +1,5 @@
+var fs = require('fs');
+
 var express = require('express');
 var app = express();
 
@@ -9,15 +11,15 @@ var startingOrderRequired = true;
 var orderRequired = false;
 var entryPrice = null;
 var lastPriceObserved = null;
-var positiveVarianceThreshold = 0.0125;
-var reEntryThreshold = 0.005;
+var positiveVarianceThreshold = 0.015;
+var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.075;
 
+app.listen(5001);
 init();
 
 function init()
 {
-	var fs = require('fs');
 
 	var data = fs.readFileSync('./config.json'), config;
 
@@ -86,13 +88,19 @@ function tickerUpdated(error, results)
 			console.log("     Entry: $" + entryPrice + "\n   Current: $" + currentUSDValue + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 		}
 
+		var demandVariance = 0.01;
+
 		if (currentUSDValue >= minimumPriceToSell && !orderRequired)
 		{
-			sellAtPrice(currentUSDValue);
+			sellAtPrice(currentUSDValue * (1.00 + demandVariance));
 		}
 		else if (currentUSDValue <= maximumPriceToBuy && orderRequired)
 		{
-			enterAtPrice(currentUSDValue);
+			enterAtPrice(currentUSDValue * (1.00 - demandVariance));
+		}
+		else if (currentUSDValue <= entryPrice * (1.00 - dropExitThreshold))
+		{
+			sellAtPrice(currentUSDValue * (1.00 + demandVariance));
 		}
 
 		lastPriceObserved = currentUSDValue;
@@ -113,15 +121,20 @@ function marketEntered(error, result)
 	entryPrice = result["price"];
 	startingOrderRequired = false;
 
-	console.log("\n<<<<<<<<<<<<<<<<<<\nEntered at price: " + entryPrice + "\n<<<<<<<<<<<<<<<<<<\n");
+	console.log("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\nEntered at price: " + entryPrice + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");	               
 }
 
 function sellAtPrice(price)
 {
-	console.log("\n>>>>>>>>>>>>>>>>>>\nSold at price: " + price + " @ profit of " + (price - entryPrice) + " with gain of " + (((price - entryPrice)/entryPrice) * 100) + "%\n>>>>>>>>>>>>>>>>>>\n");
+	if (price >= entryPrice)
+	{
+		console.log("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nSold at price: " + price + " @ profit of " + (price - entryPrice) + "(" + (((price - entryPrice)/entryPrice) * 100) + "%)\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+	}
+	else
+	{
+		console.log("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nSold at price: " + price + " @ loss of " + (price - entryPrice) + "(" + (((price - entryPrice)/entryPrice) * 100) + "%)\nRe-entering at " + (price * (1.00 - reEntryThreshold)) + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
+	}
 
 	orderRequired = true;
 	entryPrice = price;
 }
-
-app.listen(5001);
