@@ -10,8 +10,8 @@ var orderRequired = false;
 var entryPrice = null;
 var lastPriceObserved = null;
 var positiveVarianceThreshold = 0.0125;
-var negativeVarianceThreshold = 0.005;
-
+var reEntryThreshold = 0.005;
+var dropExitThreshold = 0.075;
 
 init();
 
@@ -55,7 +55,7 @@ function tickerUpdated(error, results)
 {
 	if (error || results === undefined)
 	{
-		console.log("Ticker update failed.");
+		console.log("Ticker update failed: " + error);
 		return;
 	}
 
@@ -76,7 +76,8 @@ function tickerUpdated(error, results)
 		}
 
 		var minimumPriceToSell = entryPrice * (1.00 + positiveVarianceThreshold);
-		var maximumPriceToBuy = entryPrice * (1.00 - negativeVarianceThreshold);
+		var maximumPriceToBuy = entryPrice * (1.00 - reEntryThreshold);
+		var dropExitThreshold = 0.075;
 
 		var change = currentUSDValue - entryPrice;
 
