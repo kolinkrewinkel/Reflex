@@ -7,8 +7,12 @@ var Bitstamp = require('bitstamp');
 var bitstampClient = null;
 
 // Finances 
+var bitcoinQuantity = 1;
+
 var startingOrderRequired = true;
 var orderRequired = false;
+var pendingTransaction = false;
+
 var entryPrice = null;
 var lastPriceObserved = null;
 var positiveVarianceThreshold = 0.015;
@@ -21,7 +25,6 @@ init();
 
 function init()
 {
-
 	var data = fs.readFileSync('./config.json'), config;
 
 	try {
@@ -62,17 +65,33 @@ function tickerUpdated(error, results)
 		return;
 	}
 
-	var currentUSDValue = results["last"];
+	/* Ticker Definition
+	 *
+	 * last - last BTC price
+	 * high - last 24 hours price high
+	 * low - last 24 hours price low
+	 * volume - last 24 hours volume
+	 * bid - highest buy order
+	 * ask - lowest sell order
+	 *
+	 */
+
+	var lastPrice = results["last"];
+	var recentHigh = results["high"];
+	var recentLow = results["low"];
+	var recentVolume = results["volume"];
+	var askPrice = results["ask"];
+	var bidPrice = results[""]
 
 	if (entryPrice == null && startingOrderRequired)
 	{
-		enterAtPrice(currentUSDValue);
+		enterAtPrice(lastTradePrice);
 	}
 	else if (entryPrice != null)
 	{
 		if (lastPriceObserved != null)
 		{
-			if (currentUSDValue === lastPriceObserved)
+			if (lastTradePrice === lastPriceObserved)
 			{
 				return;
 			}
@@ -81,29 +100,29 @@ function tickerUpdated(error, results)
 		var minimumPriceToSell = entryPrice * (1.00 + positiveVarianceThreshold);
 		var maximumPriceToBuy = entryPrice * (1.00 - reEntryThreshold);		
 
-		var change = currentUSDValue - entryPrice;
+		var change = lastTradePrice - entryPrice;
 
 		if (!orderRequired)
 		{
-			console.log("     Entry: $" + entryPrice + "\n   Current: $" + currentUSDValue + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
+			console.log("     Entry: $" + entryPrice + "\n   Current: $" + lastTradePrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 		}
 
-		var demandVariance = 0.01;
+		var demandVariance = 0.0025;
 
-		if (currentUSDValue >= minimumPriceToSell && !orderRequired)
+		if (lastTradePrice >= minimumPriceToSell && !orderRequired)
 		{
-			sellAtPrice(currentUSDValue * (1.00 + demandVariance));
+			sellAtPrice(lastTradePrice * (1.00 + demandVariance));
 		}
-		else if (currentUSDValue <= maximumPriceToBuy && orderRequired)
+		else if (lastTradePrice <= maximumPriceToBuy && orderRequired)
 		{
-			enterAtPrice(currentUSDValue * (1.00 - demandVariance));
+			enterAtPrice(lastTradePrice * 1.00);
 		}
-		else if (currentUSDValue <= entryPrice * (1.00 - dropExitThreshold))
+		else if (lastTradePrice <= entryPrice * (1.00 - dropExitThreshold))
 		{
-			sellAtPrice(currentUSDValue * (1.00 + demandVariance));
+			sellAtPrice(lastTradePrice * (1.00 + demandVariance));
 		}
 
-		lastPriceObserved = currentUSDValue;
+		lastPriceObserved = lastTradePrice;
 	}
 }
 
@@ -111,7 +130,7 @@ function enterAtPrice(price)
 {	
 	startingOrderRequired = false;
 	orderRequired = false;
-	// bitstampClient.buy(1, price, marketEntered);
+//	bitstampClient.buy(bitcoinQuantity, price, marketEntered);
 
 	marketEntered(null, {"price": price});
 
