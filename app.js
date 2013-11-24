@@ -1,18 +1,40 @@
+/* 
+ * Node Dependencies
+ */
+
 var fs = require('fs');
+
+/* 
+ * App
+ */
 
 var express = require('express');
 var app = express();
 
-var Bitstamp = require('bitstamp');
+/* 
+ * Broker API
+ */
+
+var bitstamp = require('bitstamp');
 var bitstampClient = null;
 
-// Finances 
-var bitcoinQuantity = 1;
+/*
+ * Miscellaneous Dependencies
+ */
+
+ var moment = require('moment');
+
+/* 
+ * Trading Implementation
+ */
+
+var activeBitcoinQuantity = 1;
 
 var startingOrderRequired = true;
 var orderRequired = false;
 var pendingTransaction = false;
 
+var recentTicker = null;
 var entryPrice = null;
 var lastPriceObserved = null;
 var positiveVarianceThreshold = 0.015;
@@ -43,11 +65,11 @@ function init()
 
 function intializeBitstampClient(key, secret, client_id)
 {
-	bitstampClient = new Bitstamp(key, secret, client_id);
+	bitstampClient = new bitstamp(key, secret, client_id);
 
 	console.log("Initialized client with key: " + key + " secret: " + secret + " client ID: " + client_id);
 
-	beginRefreshingWithInterval(1.5);
+	beginRefreshingWithInterval(2.125);
 }
 
 function beginRefreshingWithInterval(seconds)
@@ -59,9 +81,9 @@ function beginRefreshingWithInterval(seconds)
 
 function tickerUpdated(error, results)
 {
-	if (error || results === undefined)
+	if (error || results === undefined || results === null)
 	{
-		console.log("Ticker update failed: " + error);
+		console.log("\nTicker update failed: (" + error + ")\nGot: " + results + "\n");
 		return;
 	}
 
@@ -130,7 +152,7 @@ function enterAtPrice(price)
 {	
 	startingOrderRequired = false;
 	orderRequired = false;
-//	bitstampClient.buy(bitcoinQuantity, price, marketEntered);
+//	bitstampClient.buy(activeBitcoinQuantity, price, marketEntered);
 
 	marketEntered(null, {"price": price});
 
