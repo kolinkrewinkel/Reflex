@@ -65,14 +65,14 @@ function tickerUpdated(error, results)
 		return;
 	}
 
-	/* Ticker Definition
+	/*  Ticker Definition
 	 *
-	 * last - last BTC price
-	 * high - last 24 hours price high
-	 * low - last 24 hours price low
+	 *   last - last BTC price
+	 *   high - last 24 hours price high
+	 *    low - last 24 hours price low
 	 * volume - last 24 hours volume
-	 * bid - highest buy order
-	 * ask - lowest sell order
+	 *    bid - highest buy order
+	 *    ask - lowest sell order
 	 *
 	 */
 
