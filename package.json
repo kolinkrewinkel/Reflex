@@ -1,10 +1,11 @@
 {
   "name": "Reflex",
   "description": "Trade Bitcoins reactively, automatically.",
-  "version": "0.0.1",
+  "version": "0.0.8",
   "private": true,
   "dependencies": {
     "express": "3.x",
+    "redis": "latest",
     "bitstamp": "latest",
     "moment": "latest"
   }

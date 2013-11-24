@@ -3,6 +3,7 @@
  */
 
 var fs = require('fs');
+var http = require('http')
 
 /* 
  * App
@@ -10,6 +11,9 @@ var fs = require('fs');
 
 var express = require('express');
 var app = express();
+
+var redis = require('redis');
+var client = redis.createClient();
 
 /* 
  * Broker API
@@ -42,23 +46,34 @@ var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.03333;
 var profit = 0.00;
 
-app.listen(5001);
+app.listen(1948);
 init();
 
 function init()
 {
-	var data = fs.readFileSync('./config.json'), config;
+	var data = fs.readFileSync('./config.json');
+	var config = null;
 
-	try {
-		config = JSON.parse(data);
-		console.log('Successfully read configuration file...')
+	try
+	{
+		config = JSON.parse(data);	
 	}
-	catch (err) {
-		console.log('Configuration file could not be read.');
-		console.log(err);
+	catch (err)
+	{
+		console.log('Configuration file could not be read. (' + err + ')');
 
 		return;
 	}
+
+	if (config !== null)
+	{
+		console.log('Successfully read configuration file...');
+	}
+
+	client.select(356, function(error, result)
+	{
+
+	});
 
 	intializeBitstampClient(config.api_key, config.secret, config.client_id);
 }
@@ -67,13 +82,14 @@ function intializeBitstampClient(key, secret, client_id)
 {
 	bitstampClient = new bitstamp(key, secret, client_id);
 
-	console.log("Initialized client with key: " + key + " secret: " + secret + " client ID: " + client_id);
+	console.log('Initialized client.');
 
-	beginRefreshingWithInterval(2.125);
+	beginRefreshingWithInterval(2.00);
 }
 
 function beginRefreshingWithInterval(seconds)
 {	
+	console.log('Ticker started.')
 	setInterval(function() {
 		bitstampClient.ticker(tickerUpdated);
 	}, seconds * 1000);
