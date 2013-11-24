@@ -173,19 +173,17 @@ function tickerUpdated(error, ticker)
 			console.log("     Entry: $" + entryPrice + "\n   Current: $" + lastTradePrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 		}
 
-		var demandVariance = 0.0025;
-
 		if (bidPrice >= minimumPriceToSell && !orderRequired)
 		{
 			sellAtPrice(bidPrice);
 		}
 		else if (askPrice <= maximumPriceToBuy && orderRequired)
 		{
-			enterAtPrice(askPrice * 1.00);
+			enterAtPrice(askPrice);
 		}
 		else if (bidPrice <= entryPrice * (1.00 - dropExitThreshold))
 		{
-			sellAtPrice(bidPrice * (1.00 + demandVariance));
+			sellAtPrice(bidPrice - 0.01);
 		}
 
 		lastPriceObserved = lastTradePrice;
