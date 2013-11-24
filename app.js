@@ -151,7 +151,7 @@ function tickerUpdated(error, ticker)
 
 	if (entryPrice == null && startingOrderRequired)
 	{
-		enterAtPrice(lastTradePrice);
+		enterAtPrice(lastTradePrice); // Place the initial order.
 	}
 	else if (entryPrice != null)
 	{
@@ -159,7 +159,7 @@ function tickerUpdated(error, ticker)
 		{
 			if (lastTradePrice === lastPriceObserved)
 			{
-				return;
+				return; // No change noted.
 			}
 		}
 
@@ -175,17 +175,17 @@ function tickerUpdated(error, ticker)
 
 		var demandVariance = 0.0025;
 
-		if (lastTradePrice >= minimumPriceToSell && !orderRequired)
+		if (bidPrice >= minimumPriceToSell && !orderRequired)
 		{
-			sellAtPrice(lastTradePrice * (1.00 + demandVariance));
+			sellAtPrice(bidPrice);
 		}
-		else if (lastTradePrice <= maximumPriceToBuy && orderRequired)
+		else if (askPrice <= maximumPriceToBuy && orderRequired)
 		{
-			enterAtPrice(lastTradePrice * 1.00);
+			enterAtPrice(askPrice * 1.00);
 		}
-		else if (lastTradePrice <= entryPrice * (1.00 - dropExitThreshold))
+		else if (bidPrice <= entryPrice * (1.00 - dropExitThreshold))
 		{
-			sellAtPrice(lastTradePrice * (1.00 + demandVariance));
+			sellAtPrice(bidPrice * (1.00 + demandVariance));
 		}
 
 		lastPriceObserved = lastTradePrice;
