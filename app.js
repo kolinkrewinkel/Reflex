@@ -12,6 +12,14 @@ var http = require('http')
 var express = require('express');
 var app = express();
 
+var externalAccessUser = null;
+var externalAccessToken = null;
+
+server.use(express.basicAuth(function(username, password)
+{
+	return (username == externalAccessUser && password == externalAccessToken);
+}));
+
 var redis = require('redis');
 var client = redis.createClient();
 
@@ -49,6 +57,19 @@ var profit = 0.00;
 app.listen(1948);
 init();
 
+/*
+ * External Fetching
+ */
+
+app.get('/overview', function(request, response)
+{
+	response.json({'sup': 'test'});
+});
+
+/*
+ * Trading Implementation
+ */
+
 function init()
 {
 	var data = fs.readFileSync('./config.json');
@@ -70,12 +91,19 @@ function init()
 		console.log('Successfully read configuration file...');
 	}
 
+	externalAccessUser = config.access_user;
+	externalAccessToken = config.access_token;
+
 	client.select(356, function(error, result)
 	{
+		if (error)
+		{
+			console.log('Failed to select database. (' + error + ')')
+			return;
+		}
 
+		intializeBitstampClient(config.api_key, config.secret, config.client_id);
 	});
-
-	intializeBitstampClient(config.api_key, config.secret, config.client_id);
 }
 
 function intializeBitstampClient(key, secret, client_id)
@@ -95,11 +123,11 @@ function beginRefreshingWithInterval(seconds)
 	}, seconds * 1000);
 }
 
-function tickerUpdated(error, results)
+function tickerUpdated(error, ticker)
 {
-	if (error || results === undefined || results === null)
+	if (error || ticker === undefined || ticker === null)
 	{
-		console.log("\nTicker update failed: (" + error + ")\nGot: " + results + "\n");
+		console.log("\nTicker update failed: (" + error + ")\nGot: " + ticker + "\n");
 		return;
 	}
 
@@ -114,12 +142,12 @@ function tickerUpdated(error, results)
 	 *
 	 */
 
-	var lastPrice = results["last"];
-	var recentHigh = results["high"];
-	var recentLow = results["low"];
-	var recentVolume = results["volume"];
-	var askPrice = results["ask"];
-	var bidPrice = results[""]
+	var lastPrice = ticker["last"];
+	var recentHigh = ticker["high"];
+	var recentLow = ticker["low"];
+	var recentVolume = ticker["volume"];
+	var askPrice = ticker["ask"];
+	var bidPrice = ticker["bid"]
 
 	if (entryPrice == null && startingOrderRequired)
 	{
