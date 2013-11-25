@@ -13,8 +13,6 @@
 		33455BA11842AF6300AA2CC0 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 33455B9F1842AF6300AA2CC0 /* InfoPlist.strings */; };
 		33455BA31842AF6300AA2CC0 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 33455BA21842AF6300AA2CC0 /* main.m */; };
 		33455BA71842AF6300AA2CC0 /* RFXAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 33455BA61842AF6300AA2CC0 /* RFXAppDelegate.m */; };
-		33455BAA1842AF6300AA2CC0 /* Main_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33455BA81842AF6300AA2CC0 /* Main_iPhone.storyboard */; };
-		33455BAD1842AF6300AA2CC0 /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33455BAB1842AF6300AA2CC0 /* Main_iPad.storyboard */; };
 		33455BB01842AF6300AA2CC0 /* RFXViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33455BAF1842AF6300AA2CC0 /* RFXViewController.m */; };
 		33455BB21842AF6300AA2CC0 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33455BB11842AF6300AA2CC0 /* Images.xcassets */; };
 		33455BB91842AF6300AA2CC0 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33455BB81842AF6300AA2CC0 /* XCTest.framework */; };
@@ -22,6 +20,10 @@
 		33455BBB1842AF6300AA2CC0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33455B9A1842AF6300AA2CC0 /* UIKit.framework */; };
 		33455BC31842AF6300AA2CC0 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 33455BC11842AF6300AA2CC0 /* InfoPlist.strings */; };
 		33455BC51842AF6300AA2CC0 /* ReflexTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33455BC41842AF6300AA2CC0 /* ReflexTests.m */; };
+		33455BD01842D2CC00AA2CC0 /* RFXLoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33455BCF1842D2CC00AA2CC0 /* RFXLoginViewController.m */; };
+		33455BD31842FD8000AA2CC0 /* RFXLoginViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 33455BD21842FD8000AA2CC0 /* RFXLoginViewCell.m */; };
+		33455BD6184322B900AA2CC0 /* RFXOverviewViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33455BD5184322B900AA2CC0 /* RFXOverviewViewController.m */; };
+		FD4CA667D58743679067BF48 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A2199137F1644199ACB93C7 /* libPods.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2A2199137F1644199ACB93C7 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		33455B931842AF6300AA2CC0 /* Reflex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Reflex.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33455B961842AF6300AA2CC0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		33455B981842AF6300AA2CC0 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -45,8 +48,6 @@
 		33455BA41842AF6300AA2CC0 /* Reflex-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Reflex-Prefix.pch"; sourceTree = "<group>"; };
 		33455BA51842AF6300AA2CC0 /* RFXAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RFXAppDelegate.h; sourceTree = "<group>"; };
 		33455BA61842AF6300AA2CC0 /* RFXAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RFXAppDelegate.m; sourceTree = "<group>"; };
-		33455BA91842AF6300AA2CC0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPhone.storyboard; sourceTree = "<group>"; };
-		33455BAC1842AF6300AA2CC0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
 		33455BAE1842AF6300AA2CC0 /* RFXViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RFXViewController.h; sourceTree = "<group>"; };
 		33455BAF1842AF6300AA2CC0 /* RFXViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RFXViewController.m; sourceTree = "<group>"; };
 		33455BB11842AF6300AA2CC0 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -55,6 +56,13 @@
 		33455BC01842AF6300AA2CC0 /* ReflexTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ReflexTests-Info.plist"; sourceTree = "<group>"; };
 		33455BC21842AF6300AA2CC0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		33455BC41842AF6300AA2CC0 /* ReflexTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ReflexTests.m; sourceTree = "<group>"; };
+		33455BCE1842D2CC00AA2CC0 /* RFXLoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFXLoginViewController.h; sourceTree = "<group>"; };
+		33455BCF1842D2CC00AA2CC0 /* RFXLoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFXLoginViewController.m; sourceTree = "<group>"; };
+		33455BD11842FD8000AA2CC0 /* RFXLoginViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFXLoginViewCell.h; sourceTree = "<group>"; };
+		33455BD21842FD8000AA2CC0 /* RFXLoginViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFXLoginViewCell.m; sourceTree = "<group>"; };
+		33455BD4184322B900AA2CC0 /* RFXOverviewViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFXOverviewViewController.h; sourceTree = "<group>"; };
+		33455BD5184322B900AA2CC0 /* RFXOverviewViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFXOverviewViewController.m; sourceTree = "<group>"; };
+		AA16411B207B44B3AE336529 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +73,7 @@
 				33455B991842AF6300AA2CC0 /* CoreGraphics.framework in Frameworks */,
 				33455B9B1842AF6300AA2CC0 /* UIKit.framework in Frameworks */,
 				33455B971842AF6300AA2CC0 /* Foundation.framework in Frameworks */,
+				FD4CA667D58743679067BF48 /* libPods.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +97,7 @@
 				33455BBE1842AF6300AA2CC0 /* ReflexTests */,
 				33455B951842AF6300AA2CC0 /* Frameworks */,
 				33455B941842AF6300AA2CC0 /* Products */,
+				AA16411B207B44B3AE336529 /* Pods.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -107,6 +117,7 @@
 				33455B981842AF6300AA2CC0 /* CoreGraphics.framework */,
 				33455B9A1842AF6300AA2CC0 /* UIKit.framework */,
 				33455BB81842AF6300AA2CC0 /* XCTest.framework */,
+				2A2199137F1644199ACB93C7 /* libPods.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -114,10 +125,14 @@
 		33455B9C1842AF6300AA2CC0 /* Reflex */ = {
 			isa = PBXGroup;
 			children = (
+				33455BD4184322B900AA2CC0 /* RFXOverviewViewController.h */,
+				33455BD5184322B900AA2CC0 /* RFXOverviewViewController.m */,
+				33455BD11842FD8000AA2CC0 /* RFXLoginViewCell.h */,
+				33455BD21842FD8000AA2CC0 /* RFXLoginViewCell.m */,
 				33455BA51842AF6300AA2CC0 /* RFXAppDelegate.h */,
 				33455BA61842AF6300AA2CC0 /* RFXAppDelegate.m */,
-				33455BA81842AF6300AA2CC0 /* Main_iPhone.storyboard */,
-				33455BAB1842AF6300AA2CC0 /* Main_iPad.storyboard */,
+				33455BCE1842D2CC00AA2CC0 /* RFXLoginViewController.h */,
+				33455BCF1842D2CC00AA2CC0 /* RFXLoginViewController.m */,
 				33455BAE1842AF6300AA2CC0 /* RFXViewController.h */,
 				33455BAF1842AF6300AA2CC0 /* RFXViewController.m */,
 				33455BB11842AF6300AA2CC0 /* Images.xcassets */,
@@ -162,9 +177,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 33455BC81842AF6300AA2CC0 /* Build configuration list for PBXNativeTarget "Reflex" */;
 			buildPhases = (
+				2B8465BB5E7741E38F61A956 /* Check Pods Manifest.lock */,
 				33455B8F1842AF6300AA2CC0 /* Sources */,
 				33455B901842AF6300AA2CC0 /* Frameworks */,
 				33455B911842AF6300AA2CC0 /* Resources */,
+				44850B8082B5441D971679AE /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -232,9 +249,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33455BAD1842AF6300AA2CC0 /* Main_iPad.storyboard in Resources */,
 				33455BB21842AF6300AA2CC0 /* Images.xcassets in Resources */,
-				33455BAA1842AF6300AA2CC0 /* Main_iPhone.storyboard in Resources */,
 				33455BA11842AF6300AA2CC0 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -249,14 +264,50 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		2B8465BB5E7741E38F61A956 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		44850B8082B5441D971679AE /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Pods-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		33455B8F1842AF6300AA2CC0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				33455BA31842AF6300AA2CC0 /* main.m in Sources */,
+				33455BD31842FD8000AA2CC0 /* RFXLoginViewCell.m in Sources */,
+				33455BD6184322B900AA2CC0 /* RFXOverviewViewController.m in Sources */,
 				33455BA71842AF6300AA2CC0 /* RFXAppDelegate.m in Sources */,
 				33455BB01842AF6300AA2CC0 /* RFXViewController.m in Sources */,
+				33455BD01842D2CC00AA2CC0 /* RFXLoginViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,22 +336,6 @@
 				33455BA01842AF6300AA2CC0 /* en */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		33455BA81842AF6300AA2CC0 /* Main_iPhone.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				33455BA91842AF6300AA2CC0 /* Base */,
-			);
-			name = Main_iPhone.storyboard;
-			sourceTree = "<group>";
-		};
-		33455BAB1842AF6300AA2CC0 /* Main_iPad.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				33455BAC1842AF6300AA2CC0 /* Base */,
-			);
-			name = Main_iPad.storyboard;
 			sourceTree = "<group>";
 		};
 		33455BC11842AF6300AA2CC0 /* InfoPlist.strings */ = {
@@ -390,6 +425,7 @@
 		};
 		33455BC91842AF6300AA2CC0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA16411B207B44B3AE336529 /* Pods.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -403,6 +439,7 @@
 		};
 		33455BCA1842AF6300AA2CC0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA16411B207B44B3AE336529 /* Pods.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -475,6 +512,7 @@
 				33455BCA1842AF6300AA2CC0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		33455BCB1842AF6300AA2CC0 /* Build configuration list for PBXNativeTarget "ReflexTests" */ = {
 			isa = XCConfigurationList;
@@ -483,6 +521,7 @@
 				33455BCD1842AF6300AA2CC0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

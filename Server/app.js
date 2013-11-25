@@ -10,14 +10,22 @@ var http = require('http')
  */
 
 var express = require('express');
-var app = express();
 
 var externalAccessUser = null;
 var externalAccessToken = null;
 
-server.use(express.basicAuth(function(username, password)
+var hskey = fs.readFileSync('key.pem');
+var hscert = fs.readFileSync('key-cert.pem')
+var options = {
+    key: hskey,
+    cert: hscert
+};
+
+var app = express(options);
+
+app.use(express.basicAuth(function(username, password)
 {
-	return (username == externalAccessUser && password == externalAccessToken);
+	return (username === externalAccessUser && password === externalAccessToken);
 }));
 
 var redis = require('redis');
@@ -54,16 +62,23 @@ var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.03333;
 var profit = 0.00;
 
-app.listen(1948);
+app.listen(8970);
 init();
 
 /*
  * External Fetching
  */
 
-app.get('/overview', function(request, response)
+app.get('/reflex/', function(request, response)
 {
+	response.redirect('http://kolinkrewinkel.com/');
+});
+
+app.get('/reflex/overview', function(request, response)
+{
+	console.log('heyyy');
 	response.json({'sup': 'test'});
+	response.end();
 });
 
 /*
@@ -94,7 +109,7 @@ function init()
 	externalAccessUser = config.access_user;
 	externalAccessToken = config.access_token;
 
-	client.select(356, function(error, result)
+	client.select(3, function(error, result)
 	{
 		if (error)
 		{
@@ -102,7 +117,8 @@ function init()
 			return;
 		}
 
-		intializeBitstampClient(config.api_key, config.secret, config.client_id);
+		profit = client.get("profit");
+		// intializeBitstampClient(config.api_key, config.secret, config.client_id);
 	});
 }
 
@@ -231,6 +247,7 @@ function sellAtPrice(price)
 function commissionedEventOccurred(price)
 {
 	profit -= price * 0.005;
+	client.set("profit", profit);
 
 	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n")
 }

@@ -7,15 +7,38 @@
 //
 
 #import "RFXAppDelegate.h"
+#import "RFXLoginViewController.h"
+#import "RFXOverviewViewController.h"
 
 @implementation RFXAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.window.tintColor = [UIColor greenColor];
+
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+    {
+        UINavigationController *navigationController = [[UINavigationController alloc] init];
+
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:@"server"])
+        {
+            [navigationController setViewControllers:@[[[RFXOverviewViewController alloc] init]]];
+        }
+        else
+        {
+            [navigationController setViewControllers:@[[[RFXLoginViewController alloc] initWithStyle:UITableViewStyleGrouped]]];
+        }
+
+        navigationController.navigationBar.barStyle = UIBarStyleBlackTranslucent;
+        self.window.rootViewController = navigationController;
+    }
+
+    [self.window makeKeyAndVisible];
+
     return YES;
 }
-							
+
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
