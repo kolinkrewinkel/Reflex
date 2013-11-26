@@ -14,8 +14,8 @@ var express = require('express');
 var externalAccessUser = null;
 var externalAccessToken = null;
 
-var hskey = fs.readFileSync('./ssl/server.key');
-var hscert = fs.readFileSync('./ssl/server.crt');
+// var hskey = fs.readFileSync('./ssl/server.key');
+// var hscert = fs.readFileSync('./ssl/server.crt');
 
 var options = {
 	// key: hskey,
@@ -36,8 +36,8 @@ var client = redis.createClient();
  * Broker API
  */
 
-var bitstamp = require('bitstamp');
-var bitstampClient = null;
+var btce = require('btce');
+var btceClient = null;
 
 /*
  * Miscellaneous Dependencies
@@ -58,10 +58,11 @@ var pendingTransaction = false;
 var recentTicker = null;
 var entryPrice = null;
 var lastPriceObserved = null;
-var positiveVarianceThreshold = 0.015;
+var positiveVarianceThreshold = 0.006;
 var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.03333;
 var profit = 0.00;
+var commissionRate = 0.002;
 
 app.listen(8970);
 init();
@@ -117,16 +118,27 @@ function init()
 			return;
 		}
 
-		profit = client.get("profit");
-		console.log("Previous profit was " + profit);
+		client.get("profit", function(err, reply) {
+			if (reply == null || isNaN(reply))
+			{
+				client.set("profit", 0);
+				console.log("Setting profit to 0 (NaN or nonexistant.");
+
+				return;
+			}
+
+			storedProfit = reply;
+		    profit += storedProfit;
+			console.log("Previous profit was " + storedProfit);
+		});
 		
-		intializeBitstampClient(config.api_key, config.secret, config.client_id);
+		initializeClient(config.api_key, config.secret);
 	});
 }
 
-function intializeBitstampClient(key, secret, client_id)
+function initializeClient(key, secret)
 {
-	bitstampClient = new bitstamp(key, secret, client_id);
+	btceClient = new btce(key, secret);
 
 	console.log('Initialized client.');
 
@@ -137,15 +149,15 @@ function beginRefreshingWithInterval(seconds)
 {	
 	console.log('Ticker started.')
 	setInterval(function() {
-		bitstampClient.ticker(tickerUpdated);
+		btceClient.ticker({ pair: 'btc_usd' }, tickerUpdated);
 	}, seconds * 1000);
 }
 
-function tickerUpdated(error, ticker)
+function tickerUpdated(error, data)
 {
-	if (error || ticker === undefined || ticker === null)
+	if (error || data === undefined || data === null)
 	{
-		console.log("\nTicker update failed: (" + error + ")\nGot: " + ticker + "\n");
+		console.log("\nTicker update failed: (" + error + ")\nGot: " + data + "\n");
 		return;
 	}
 
@@ -160,12 +172,15 @@ function tickerUpdated(error, ticker)
 	 *
 	 */
 
-	var lastPrice = ticker["last"];
-	var recentHigh = ticker["high"];
-	var recentLow = ticker["low"];
-	var recentVolume = ticker["volume"];
-	var askPrice = ticker["ask"];
-	var bidPrice = ticker["bid"]
+	var ticker = data['ticker'];
+	recentTicker = ticker;
+
+	var lastPrice = ticker['last'];
+	var recentHigh = ticker['high'];
+	var recentLow = ticker['low'];
+	var recentVolume = ticker['volume'];
+	var sellPrice = ticker['sell'];
+	var buyPrice = ticker['buy']
 
 	if (entryPrice == null && startingOrderRequired)
 	{
@@ -191,17 +206,17 @@ function tickerUpdated(error, ticker)
 			console.log("     Entry: $" + entryPrice + "\n   Current: $" + lastPrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 		}
 
-		if (bidPrice >= minimumPriceToSell && !orderRequired)
+		if (buyPrice >= minimumPriceToSell && !orderRequired)
 		{
-			sellAtPrice(bidPrice);
+			sellAtPrice(buyPrice);
 		}
-		else if (askPrice <= maximumPriceToBuy && orderRequired)
+		else if (sellPrice <= maximumPriceToBuy && orderRequired)
 		{
-			enterAtPrice(askPrice);
+			enterAtPrice(sellPrice);
 		}
-		else if (bidPrice <= entryPrice * (1.00 - dropExitThreshold))
+		else if (buyPrice <= entryPrice * (1.00 - dropExitThreshold))
 		{
-			sellAtPrice(bidPrice - 0.01);
+			sellAtPrice(buyPrice - 0.01);
 		}
 
 		lastPriceObserved = lastPrice;
@@ -248,7 +263,7 @@ function sellAtPrice(price)
 
 function commissionedEventOccurred(price)
 {
-	profit -= price * 0.005;
+	profit -= price * commissionRate;
 	client.set("profit", profit);
 
 	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n")

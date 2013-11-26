@@ -6,7 +6,7 @@
   "dependencies": {
     "express": "3.x",
     "redis": "latest",
-    "bitstamp": "latest",
+    "btce": "latest",
     "moment": "latest"
   }
 }
