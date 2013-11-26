@@ -14,11 +14,10 @@ var express = require('express');
 var externalAccessUser = null;
 var externalAccessToken = null;
 
-var hskey = fs.readFileSync('key.pem');
-var hscert = fs.readFileSync('cert.pem')
 var options = {
-    key: hskey,
-    cert: hscert
+	key: fs.readFileSync('./ssl/server.key'),
+	cert: fs.readFileSync('./ssl/server.crt'),
+	ca: fs.readFileSync('./ssl/ca.crt'),
 };
 
 var app = express(options);
@@ -62,7 +61,7 @@ var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.03333;
 var profit = 0.00;
 
-app.listen(8970);
+app.listen(443);
 init();
 
 /*
