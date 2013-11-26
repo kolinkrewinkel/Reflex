@@ -15,7 +15,7 @@ var externalAccessUser = null;
 var externalAccessToken = null;
 
 var hskey = fs.readFileSync('key.pem');
-var hscert = fs.readFileSync('key-cert.pem')
+var hscert = fs.readFileSync('cert.pem')
 var options = {
     key: hskey,
     cert: hscert
@@ -76,8 +76,7 @@ app.get('/reflex/', function(request, response)
 
 app.get('/reflex/overview', function(request, response)
 {
-	console.log('heyyy');
-	response.json({'sup': 'test'});
+	response.json({'profit': client.get('profit'), 'ticker': recentTicker, 'recentEntry': entryPrice});
 	response.end();
 });
 
@@ -118,7 +117,9 @@ function init()
 		}
 
 		profit = client.get("profit");
-		// intializeBitstampClient(config.api_key, config.secret, config.client_id);
+		console.log("Previous profit was " + profit);
+		
+		intializeBitstampClient(config.api_key, config.secret, config.client_id);
 	});
 }
 
@@ -167,13 +168,13 @@ function tickerUpdated(error, ticker)
 
 	if (entryPrice == null && startingOrderRequired)
 	{
-		enterAtPrice(lastTradePrice); // Place the initial order.
+		enterAtPrice(lastPrice); // Place the initial order.
 	}
 	else if (entryPrice != null)
 	{
 		if (lastPriceObserved != null)
 		{
-			if (lastTradePrice === lastPriceObserved)
+			if (lastPrice === lastPriceObserved)
 			{
 				return; // No change noted.
 			}
@@ -182,11 +183,11 @@ function tickerUpdated(error, ticker)
 		var minimumPriceToSell = entryPrice * (1.00 + positiveVarianceThreshold);
 		var maximumPriceToBuy = entryPrice * (1.00 - reEntryThreshold);		
 
-		var change = lastTradePrice - entryPrice;
+		var change = lastPrice - entryPrice;
 
 		if (!orderRequired)
 		{
-			console.log("     Entry: $" + entryPrice + "\n   Current: $" + lastTradePrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
+			console.log("     Entry: $" + entryPrice + "\n   Current: $" + lastPrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 		}
 
 		if (bidPrice >= minimumPriceToSell && !orderRequired)
@@ -202,7 +203,7 @@ function tickerUpdated(error, ticker)
 			sellAtPrice(bidPrice - 0.01);
 		}
 
-		lastPriceObserved = lastTradePrice;
+		lastPriceObserved = lastPrice;
 	}
 }
 
