@@ -32,8 +32,17 @@
 
     self.title = @"Reflex";
 
-
-
+    NSURL *URL = [NSURL URLWithString:@"http://linode.kolinkrewinkel.com:8970/reflex/overview"];
+    NSURLRequest *request = [NSURLRequest requestWithURL:URL];
+    AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    op.responseSerializer = [AFJSONResponseSerializer serializer];
+    [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"JSON: %@", responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+    }];
+    op.securityPolicy.allowInvalidCertificates = YES;
+    [[NSOperationQueue mainQueue] addOperation:op];
 }
 
 @end

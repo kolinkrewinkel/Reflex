@@ -14,18 +14,20 @@ var express = require('express');
 var externalAccessUser = null;
 var externalAccessToken = null;
 
+var hskey = fs.readFileSync('./ssl/server.key');
+var hscert = fs.readFileSync('./ssl/server.crt');
+
 var options = {
-	key: fs.readFileSync('./ssl/server.key'),
-	cert: fs.readFileSync('./ssl/server.crt'),
-	ca: fs.readFileSync('./ssl/ca.crt'),
+	// key: hskey,
+	// cert: hscert
 };
 
 var app = express(options);
 
-app.use(express.basicAuth(function(username, password)
-{
-	return (username === externalAccessUser && password === externalAccessToken);
-}));
+// app.use(express.basicAuth(function(username, password)
+// {
+// 	return (username === externalAccessUser && password === externalAccessToken);
+// }));
 
 var redis = require('redis');
 var client = redis.createClient();
@@ -61,7 +63,7 @@ var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.03333;
 var profit = 0.00;
 
-app.listen(443);
+app.listen(8970);
 init();
 
 /*
