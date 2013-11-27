@@ -31,6 +31,7 @@ var app = express(options);
 
 var redis = require('redis');
 var client = redis.createClient();
+var config = null;
 
 /* 
  * Broker API
@@ -58,11 +59,14 @@ var pendingTransaction = false;
 var recentTicker = null;
 var entryPrice = null;
 var lastPriceObserved = null;
-var positiveVarianceThreshold = 0.006;
+var positiveVarianceThreshold = 0.0065;
 var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.03333;
 var profit = 0.00;
 var commissionRate = 0.002;
+
+var saleInProgress = false;
+var buyInProgress = false;
 
 app.listen(8970);
 init();
@@ -89,7 +93,6 @@ app.get('/reflex/overview', function(request, response)
 function init()
 {
 	var data = fs.readFileSync('./config.json');
-	var config = null;
 
 	try
 	{
@@ -122,7 +125,7 @@ function init()
 			if (reply == null || isNaN(reply))
 			{
 				client.set("profit", 0);
-				console.log("Setting profit to 0 (NaN or nonexistant.");
+				console.log("Setting profit to 0 (NaN or nonexistant.)");
 
 				return;
 			}
@@ -142,7 +145,7 @@ function initializeClient(key, secret)
 
 	console.log('Initialized client.');
 
-	beginRefreshingWithInterval(2.00);
+	beginRefreshingWithInterval(1.00);
 }
 
 function beginRefreshingWithInterval(seconds)
@@ -167,8 +170,8 @@ function tickerUpdated(error, data)
 	 *   high - last 24 hours price high
 	 *    low - last 24 hours price low
 	 * volume - last 24 hours volume
-	 *    bid - highest buy order
-	 *    ask - lowest sell order
+	 *   sell - lowest sell order
+	 *    buy - highest buy order
 	 *
 	 */
 
@@ -212,11 +215,17 @@ function tickerUpdated(error, data)
 		}
 		else if (sellPrice <= maximumPriceToBuy && orderRequired)
 		{
-			enterAtPrice(sellPrice);
+			enterAtPrice(sellPrice + 0.01);
 		}
 		else if (buyPrice <= entryPrice * (1.00 - dropExitThreshold))
 		{
 			sellAtPrice(buyPrice - 0.01);
+		}
+		else if (buyPrice >= entryPrice * (1.00 + positiveVarianceThreshold))
+		{
+			console.log("Run is occurring; re-basing entry price.");
+
+			entryPrice = buyPrice;
 		}
 
 		lastPriceObserved = lastPrice;
@@ -225,10 +234,48 @@ function tickerUpdated(error, data)
 
 function enterAtPrice(price)
 {	
+	if (config.live)
+	{
+		btceClient.trade({'pair': 'btc_usd', 'type': 'buy', 'rate': price, 'amount': 0}, function(err, data)
+		{
+			if (err || data == null)
+			{
+				console.log(err);
+				return;
+			}
+
+			var response = data['return'];
+			var orderID = resposne['order_id'];
+
+			if (orderID === 0)
+			{
+				boughtSuccessfully(price);
+			}
+			else
+			{
+				btceClient.cancelOrder(orderID, function(err, data)
+				{
+					if (err)
+					{
+						console.log(err);
+						return;
+					}
+				});
+			}
+		});
+	}
+	else
+	{
+		boughtSuccessfully(price);
+	}
+}
+
+function boughtSuccessfully(price)
+{
 	startingOrderRequired = false;
 	orderRequired = false;
-//	bitstampClient.buy(activeBitcoinQuantity, price, marketEntered);
-
+	buyInProgress = false;
+	
 	marketEntered(null, {"price": price});
 
 	commissionedEventOccurred(price);
@@ -244,6 +291,43 @@ function marketEntered(error, result)
 
 function sellAtPrice(price)
 {
+	if (config.live)
+	{
+		btceClient.trade({'pair': 'btc_usd', 'type': 'sell', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data) {
+					if (err || data == null)
+					{
+						console.log(err);
+						return;
+					}
+
+					var response = data['return'];
+					var orderID = resposne['order_id'];
+
+					if (orderID === 0)
+					{
+						soldSuccessfully(price);
+					}
+					else
+					{
+						btceClient.cancelOrder(orderID, function(err, data)
+						{
+							if (err)
+							{
+								console.log(err);
+								return;
+							}
+						});
+					}
+			});
+	}
+	else
+	{
+		soldSuccessfully(price);
+	}
+}
+
+function soldSuccessfully(price)
+{
 	if (price >= entryPrice)
 	{
 		console.log("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nSold at price: " + price + " @ profit of " + (price - entryPrice) + "(" + (((price - entryPrice)/entryPrice) * 100) + "%)\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
@@ -253,17 +337,19 @@ function sellAtPrice(price)
 		console.log("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\nSold at price: " + price + " @ loss of " + (price - entryPrice) + "(" + (((price - entryPrice)/entryPrice) * 100) + "%)\nRe-entering at " + (price * (1.00 - reEntryThreshold)) + "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 	}
 
-	profit += price - entryPrice;
+	profit += ((price - entryPrice) * activeBitcoinQuantity);
 
 	orderRequired = true;
 	entryPrice = price;
+	saleInProgress = true;
 
 	commissionedEventOccurred(price);
 }
 
 function commissionedEventOccurred(price)
 {
-	profit -= price * commissionRate;
+	profit -= ((price * commissionRate) * activeBitcoinQuantity);
+
 	client.set("profit", profit);
 
 	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n")
