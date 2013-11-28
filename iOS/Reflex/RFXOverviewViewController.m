@@ -108,7 +108,6 @@
 
 - (void)receivedJSON:(NSDictionary *)JSON
 {
-    NSLog(@"%@", JSON);
     NSDictionary *ticker = JSON[@"ticker"];
 
     NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
