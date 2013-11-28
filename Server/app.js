@@ -82,8 +82,15 @@ app.get('/reflex/', function(request, response)
 
 app.get('/reflex/overview', function(request, response)
 {
-	response.json({'profit': client.get('profit'), 'ticker': recentTicker, 'recentEntry': entryPrice});
-	response.end();
+	client.get("profit", function(err, profit) {
+		if (profit == null)
+		{
+			profit = 0;
+		}
+
+		response.json({'profit': client.get('profit'), 'ticker': recentTicker, 'recentEntry': entryPrice});
+		response.end();
+	});
 });
 
 /*
@@ -122,7 +129,7 @@ function init()
 		}
 
 		client.get("profit", function(err, reply) {
-			if (reply == null || isNaN(reply))
+			if (reply == null || isNaN(reply) || reply == false || reply < 0)
 			{
 				client.set("profit", 0);
 				console.log("Setting profit to 0 (NaN or nonexistant.)");
