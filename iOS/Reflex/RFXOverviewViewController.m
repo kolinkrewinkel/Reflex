@@ -16,22 +16,19 @@
 @property (nonatomic, copy) NSString *entryPrice;
 @property (nonatomic, copy) NSString *bitcoinCount;
 
-@property (nonatomic, copy) NSString *lastPrice;
 @property (nonatomic, copy) NSString *buyPrice;
+@property (nonatomic, copy) NSString *lastPrice;
+@property (nonatomic, copy) NSString *sellPrice;
+@property (nonatomic, copy) NSString *recentHigh;
+@property (nonatomic, copy) NSString *recentLow;
+@property (nonatomic, copy) NSString *volume;
 
 
 @end
 
 @implementation RFXOverviewViewController
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
+#pragma mark - UIViewController
 
 - (void)viewDidLoad
 {
@@ -40,8 +37,13 @@
     self.totalProfit = @"";
     self.entryPrice = @"";
     self.bitcoinCount = @"";
+
     self.buyPrice = @"";
     self.lastPrice = @"";
+    self.sellPrice = @"";
+    self.recentHigh = @"";
+    self.recentLow = @"";
+    self.volume = @"";
 
     self.title = @"Reflex";
     self.view.backgroundColor = [UIColor colorWithWhite:0.205 alpha:1.000];
@@ -67,7 +69,7 @@
 
 - (NSArray *)labels
 {
-    return @[self.totalProfit, self.entryPrice, self.bitcoinCount, self.buyPrice, self.lastPrice];
+    return @[self.totalProfit, self.entryPrice, self.bitcoinCount, self.buyPrice, self.lastPrice, self.sellPrice, self.recentHigh, self.recentLow, self.volume];
 }
 
 #pragma mark - NSNotification
@@ -115,65 +117,62 @@
 
     self.totalProfit = [numberFormatter stringFromNumber:JSON[@"profit"]];
     self.entryPrice = [numberFormatter stringFromNumber:JSON[@"recent_entry"]];
-    self.bitcoinCount = JSON[@"bitcoin_count"];
+    self.bitcoinCount = [JSON[@"bitcoin_count"] stringValue];
+
     self.buyPrice = [numberFormatter stringFromNumber:ticker[@"buy"]];
     self.lastPrice = [numberFormatter stringFromNumber:ticker[@"last"]];
+    self.sellPrice = [numberFormatter stringFromNumber:ticker[@"sell"]];
+    self.recentHigh = [numberFormatter stringFromNumber:ticker[@"high"]];
+    self.recentLow = [numberFormatter stringFromNumber:ticker[@"low"]];
+
+    [numberFormatter setCurrencySymbol:@"BTC"];
+    [numberFormatter setPositiveFormat:@"#,##0.00 ¤"];
+    self.volume = [numberFormatter stringFromNumber:ticker[@"vol_cur"]];
 
     NSArray *newTextLabels = [self labels];
 
-    NSUInteger index = 0;
-    for (NSString *oldString in textLabels)
-    {
-        if ([oldString isKindOfClass:[NSNull class]])
-        {
-            index++;
-            continue;
-        }
+    [self.refreshControl endRefreshing];
 
-        NSString *newString = newTextLabels[index];
-
-        if (![oldString isEqualToString:newString])
-        {
-            NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
-            numberFormatter.numberStyle = NSNumberFormatterCurrencyStyle;
-
-            double oldValue = [[numberFormatter numberFromString:oldString] doubleValue];
-            double newValue = [[numberFormatter numberFromString:newString] doubleValue];
-
-            UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[self indexPathForIndex:index]];
-            UILabel *label = (UILabel *)cell.accessoryView;
-
-            if (newValue > oldValue)
-            {
-                label.textColor = [[UIColor greenColor] colorWithAlphaComponent:0.8f];
-            }
-            else if (newValue < oldValue)
-            {
-                label.textColor = [[UIColor redColor] colorWithAlphaComponent:0.8f];
-            }
-        }
-
-        index++;
-    }
-
-
-    __weak typeof(self) weakSelf = self;
-    double delayInSeconds = 3.0;
+    double delayInSeconds = 0.5;
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-        for (UILabel *label in [weakSelf labels])
+        NSUInteger index = 0;
+        for (NSString *oldString in textLabels)
         {
-            label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8f];
+            if ([oldString isKindOfClass:[NSNull class]])
+            {
+                index++;
+                continue;
+            }
 
-            CATransition *transition = [CATransition animation];
-            transition.duration = 0.35;
-            transition.type = kCATransitionFade;
+            NSString *newString = newTextLabels[index];
 
-            [label.layer addAnimation:transition forKey:nil];
+            if (![oldString isEqualToString:newString])
+            {
+                NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+                numberFormatter.numberStyle = NSNumberFormatterCurrencyStyle;
+
+                double oldValue = [[numberFormatter numberFromString:oldString] doubleValue];
+                double newValue = [[numberFormatter numberFromString:newString] doubleValue];
+
+                UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[self indexPathForIndex:index]];
+                UILabel *label = (UILabel *)cell.accessoryView;
+
+                if (newValue > oldValue)
+                {
+                    label.textColor = [[UIColor greenColor] colorWithAlphaComponent:0.8f];
+                }
+                else if (newValue < oldValue)
+                {
+                    label.textColor = [[UIColor redColor] colorWithAlphaComponent:0.8f];
+                }
+            }
+            
+            index++;
         }
+        
+        [self.tableView reloadData];
     });
-
-    [self.refreshControl endRefreshing];
 }
 
 - (NSIndexPath *)indexPathForIndex:(NSUInteger)index
@@ -198,6 +197,22 @@
     {
         return [NSIndexPath indexPathForRow:1 inSection:1];
     }
+    else if (index == 5)
+    {
+        return [NSIndexPath indexPathForRow:2 inSection:1];
+    }
+    else if (index == 6)
+    {
+        return [NSIndexPath indexPathForRow:3 inSection:1];
+    }
+    else if (index == 7)
+    {
+        return [NSIndexPath indexPathForRow:4 inSection:1];
+    }
+    else if (index == 8)
+    {
+        return [NSIndexPath indexPathForRow:5 inSection:1];
+    }
 
     return nil;
 }
@@ -217,7 +232,7 @@
     }
     else if (section == 1)
     {
-        return 2;
+        return 6;
     }
 
     return 0;
@@ -262,51 +277,90 @@
     if (!cell)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"Cell"];
+    }
 
-        UILabel *label = [[UILabel alloc] init];
-        label.backgroundColor = [UIColor clearColor];;
-        label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8f];
-        label.textAlignment = NSTextAlignmentLeft;
+    UILabel *label = (UILabel *)cell.accessoryView;
+
+    if (!label)
+    {
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.f, 0.f, 110.f, 40.f)];
+        label.backgroundColor = cell.backgroundColor;
+        label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7f];
+        label.textAlignment = NSTextAlignmentRight;
         label.tag = 917;
-        label.font = [UIFont systemFontOfSize:cell.textLabel.font.pointSize];
+        label.font = [UIFont systemFontOfSize:14.f];
 
         cell.accessoryView = label;
     }
 
-    UILabel *label = (UILabel *)[cell viewWithTag:917];
-    if (label)
+    if (indexPath.section == 0)
     {
-        if (indexPath.section == 0)
+        if (indexPath.row == 0)
         {
-            if (indexPath.row == 0)
-            {
-                cell.textLabel.text = @"Total Profit";
-                label.text = self.totalProfit;
-            }
-            else if (indexPath.row == 1)
-            {
-                cell.textLabel.text = @"Entry Price";
-                label.text = self.entryPrice;
-            }
-            else if (indexPath.row == 2)
-            {
-                cell.textLabel.text = @"BTC In-Play";
-                label.text = self.bitcoinCount;
-            }
+            cell.textLabel.text = @"Total Profit";
+            label.text = self.totalProfit;
         }
-        else
+        else if (indexPath.row == 1)
         {
-            if (indexPath.row == 0)
-            {
-                cell.textLabel.text = @"Bid Price";
-                label.text = self.buyPrice;
-            }
-            else if (indexPath.row == 1)
-            {
-                cell.textLabel.text = @"Last Trade";
-                label.text = self.lastPrice;
-            }
+            cell.textLabel.text = @"Entry Price";
+            label.text = self.entryPrice;
         }
+        else if (indexPath.row == 2)
+        {
+            cell.textLabel.text = @"BTC In-Play";
+            label.text = self.bitcoinCount;
+        }
+    }
+    else
+    {
+        if (indexPath.row == 0)
+        {
+            cell.textLabel.text = @"Bid Price";
+            label.text = self.buyPrice;
+        }
+        else if (indexPath.row == 1)
+        {
+            cell.textLabel.text = @"Last Trade";
+            label.text = self.lastPrice;
+        }
+        else if (indexPath.row == 2)
+        {
+            cell.textLabel.text = @"Sell Price";
+            label.text = self.sellPrice;
+        }
+        else if (indexPath.row == 3)
+        {
+            cell.textLabel.text = @"24-Hour High";
+            label.text = self.recentHigh;
+        }
+        else if (indexPath.row == 4)
+        {
+            cell.textLabel.text = @"24-Hour Low";
+            label.text = self.recentLow;
+        }
+        else if (indexPath.row == 5)
+        {
+            cell.textLabel.text = @"24-Hour Volume";
+            label.text = self.volume;
+        }
+    }
+
+    CGFloat alpha = 0.f;
+    [label.textColor getWhite:NULL alpha:&alpha];
+
+    if (alpha != 0.7f)
+    {
+        double delayInSeconds = 2.0;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7f];
+
+            CATransition *transition = [CATransition animation];
+            transition.type = kCATransitionFade;
+            transition.duration = 0.375;
+
+            [label.layer addAnimation:transition forKey:nil];
+        });
     }
 
     return cell;
