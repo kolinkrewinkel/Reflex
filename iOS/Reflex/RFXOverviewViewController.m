@@ -12,10 +12,13 @@
 
 @property (nonatomic, strong) NSMutableData *downloadedData;
 
-@property (nonatomic, strong) UILabel *profitLabel;
-@property (nonatomic, strong) UILabel *lastPriceLabel;
-@property (nonatomic, strong) UILabel *buyPriceLabel;
-@property (nonatomic, strong) UILabel *entryPriceLabel;
+@property (nonatomic, copy) NSString *totalProfit;
+@property (nonatomic, copy) NSString *entryPrice;
+@property (nonatomic, copy) NSString *bitcoinCount;
+
+@property (nonatomic, copy) NSString *lastPrice;
+@property (nonatomic, copy) NSString *buyPrice;
+
 
 @end
 
@@ -34,31 +37,26 @@
 {
     [super viewDidLoad];
 
+    self.totalProfit = @"";
+    self.entryPrice = @"";
+    self.bitcoinCount = @"";
+    self.buyPrice = @"";
+    self.lastPrice = @"";
+
     self.title = @"Reflex";
+    self.view.backgroundColor = [UIColor colorWithWhite:0.205 alpha:1.000];
+    self.tableView.backgroundView = nil;
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
+    self.tableView.allowsSelection = NO;
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"Cell"];
-
-    self.profitLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.f, 88.f, 90.f, 34.f)];
-    self.profitLabel.font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
-
-    self.entryPriceLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.f, CGRectGetMaxY(self.profitLabel.frame), 90.f, 34.f)];
-    self.entryPriceLabel.font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
-
-    self.buyPriceLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.f, CGRectGetMaxY(self.entryPriceLabel.frame), 90.f, 34.f)];
-    self.buyPriceLabel.font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
-
-    self.lastPriceLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.f, CGRectGetMaxY(self.buyPriceLabel.frame), 90.f, 34.f)];
-    self.lastPriceLabel.font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
-
-    for (UILabel *label in [self labels])
-    {
-        label.backgroundColor = [UIColor clearColor];;
-        label.textColor = [UIColor darkTextColor];
-        label.textAlignment = NSTextAlignmentLeft;
-        label.tag = 917;
-    }
 
     self.refreshControl = [[UIRefreshControl alloc] init];
     [self.refreshControl addTarget:self action:@selector(fetchData) forControlEvents:UIControlEventValueChanged];
+
+    if (![self respondsToSelector:@selector(setTintColor:)])
+    {
+        self.refreshControl.tintColor = [UIColor blackColor];
+    }
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationBecameActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 
@@ -69,7 +67,7 @@
 
 - (NSArray *)labels
 {
-    return @[self.profitLabel, self.entryPriceLabel, self.buyPriceLabel, self.lastPriceLabel];
+    return @[self.totalProfit, self.entryPrice, self.bitcoinCount, self.buyPrice, self.lastPrice];
 }
 
 #pragma mark - NSNotification
@@ -113,14 +111,15 @@
     NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
     numberFormatter.numberStyle = NSNumberFormatterCurrencyStyle;
 
-    NSArray *textLabels = [[self labels] valueForKey:@"text"];
+    NSArray *textLabels = [self labels];
 
-    self.profitLabel.text = [numberFormatter stringFromNumber:JSON[@"profit"]];
-    self.entryPriceLabel.text = [numberFormatter stringFromNumber:JSON[@"recentEntry"]];
-    self.buyPriceLabel.text = [numberFormatter stringFromNumber:ticker[@"buy"]];
-    self.lastPriceLabel.text = [numberFormatter stringFromNumber:ticker[@"last"]];
+    self.totalProfit = [numberFormatter stringFromNumber:JSON[@"profit"]];
+    self.entryPrice = [numberFormatter stringFromNumber:JSON[@"recent_entry"]];
+    self.bitcoinCount = JSON[@"bitcoin_count"];
+    self.buyPrice = [numberFormatter stringFromNumber:ticker[@"buy"]];
+    self.lastPrice = [numberFormatter stringFromNumber:ticker[@"last"]];
 
-    NSArray *newTextLabels = [[self labels] valueForKey:@"text"];
+    NSArray *newTextLabels = [self labels];
 
     NSUInteger index = 0;
     for (NSString *oldString in textLabels)
@@ -135,17 +134,22 @@
 
         if (![oldString isEqualToString:newString])
         {
-            UILabel *label = [self labels][index];
-            double oldValue = [[oldString stringByReplacingOccurrencesOfString:@"$" withString:@""] doubleValue];
-            double newValue = [[newString stringByReplacingOccurrencesOfString:@"$" withString:@""] doubleValue];
+            NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+            numberFormatter.numberStyle = NSNumberFormatterCurrencyStyle;
+
+            double oldValue = [[numberFormatter numberFromString:oldString] doubleValue];
+            double newValue = [[numberFormatter numberFromString:newString] doubleValue];
+
+            UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[self indexPathForIndex:index]];
+            UILabel *label = (UILabel *)cell.accessoryView;
 
             if (newValue > oldValue)
             {
-                label.textColor = [UIColor greenColor];
+                label.textColor = [[UIColor greenColor] colorWithAlphaComponent:0.8f];
             }
             else if (newValue < oldValue)
             {
-                label.textColor = [UIColor redColor];
+                label.textColor = [[UIColor redColor] colorWithAlphaComponent:0.8f];
             }
         }
 
@@ -159,7 +163,7 @@
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
         for (UILabel *label in [weakSelf labels])
         {
-            label.textColor = [UIColor darkTextColor];
+            label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8f];
 
             CATransition *transition = [CATransition animation];
             transition.duration = 0.35;
@@ -172,6 +176,32 @@
     [self.refreshControl endRefreshing];
 }
 
+- (NSIndexPath *)indexPathForIndex:(NSUInteger)index
+{
+    if (index == 0)
+    {
+        return [NSIndexPath indexPathForRow:0 inSection:0];
+    }
+    else if (index == 1)
+    {
+        return [NSIndexPath indexPathForRow:1 inSection:0];
+    }
+    else if (index == 2)
+    {
+        return [NSIndexPath indexPathForRow:2 inSection:0];
+    }
+    else if (index == 3)
+    {
+        return [NSIndexPath indexPathForRow:0 inSection:1];
+    }
+    else if (index == 4)
+    {
+        return [NSIndexPath indexPathForRow:1 inSection:1];
+    }
+
+    return nil;
+}
+
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -181,7 +211,16 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 2;
+    if (section == 0)
+    {
+        return 3;
+    }
+    else if (section == 1)
+    {
+        return 2;
+    }
+
+    return 0;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
@@ -198,40 +237,74 @@
     return nil;
 }
 
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 42.f;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    UILabel *label = [[UILabel alloc] init];
+    label.text = [NSString stringWithFormat:@"   %@", [[self tableView:tableView titleForHeaderInSection:section] uppercaseString]];
+    label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.4f];
+    label.font = [UIFont fontWithName:@"HelveticaNeue-Medium" size:[UIFont smallSystemFontSize] * 1.3f];
+    label.backgroundColor = self.view.backgroundColor;
+
+    return label;
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
+    cell.backgroundColor = [UIColor blackColor];
+    cell.textLabel.textColor = [UIColor whiteColor];
+
     if (!cell)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"Cell"];
+
+        UILabel *label = [[UILabel alloc] init];
+        label.backgroundColor = [UIColor clearColor];;
+        label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8f];
+        label.textAlignment = NSTextAlignmentLeft;
+        label.tag = 917;
+        label.font = [UIFont systemFontOfSize:cell.textLabel.font.pointSize];
+
+        cell.accessoryView = label;
     }
 
-    if (![cell viewWithTag:917])
+    UILabel *label = (UILabel *)[cell viewWithTag:917];
+    if (label)
     {
         if (indexPath.section == 0)
         {
             if (indexPath.row == 0)
             {
-                cell.textLabel.text = @"Profit";
-                cell.accessoryView = self.profitLabel;
+                cell.textLabel.text = @"Total Profit";
+                label.text = self.totalProfit;
             }
             else if (indexPath.row == 1)
             {
-                cell.textLabel.text = @"Entry";
-                cell.accessoryView = self.entryPriceLabel;
+                cell.textLabel.text = @"Entry Price";
+                label.text = self.entryPrice;
+            }
+            else if (indexPath.row == 2)
+            {
+                cell.textLabel.text = @"BTC In-Play";
+                label.text = self.bitcoinCount;
             }
         }
         else
         {
             if (indexPath.row == 0)
             {
-                cell.textLabel.text = @"Bid";
-                cell.accessoryView = self.buyPriceLabel;
+                cell.textLabel.text = @"Bid Price";
+                label.text = self.buyPrice;
             }
             else if (indexPath.row == 1)
             {
-                cell.textLabel.text = @"Last";
-                cell.accessoryView = self.lastPriceLabel;
+                cell.textLabel.text = @"Last Trade";
+                label.text = self.lastPrice;
             }
         }
     }

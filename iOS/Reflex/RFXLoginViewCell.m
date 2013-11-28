@@ -17,13 +17,12 @@
     {
         self.textField = [[RFXLoginTextField alloc] init];
         self.textField.textColor = [UIColor whiteColor];
-        self.textField.tintColor = [UIColor whiteColor];
         self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
         self.textField.autocapitalizationType = UITextAutocapitalizationTypeNone;
 
         [self addSubview:self.textField];
-
     }
+
     return self;
 }
 
@@ -33,7 +32,14 @@
 {
     [super layoutSubviews];
 
-    self.textField.frame = UIEdgeInsetsInsetRect(self.bounds, self.separatorInset);
+    if ([self respondsToSelector:@selector(separatorInset)])
+    {
+        self.textField.frame = UIEdgeInsetsInsetRect(self.bounds, self.separatorInset);
+    }
+    else
+    {
+        self.textField.frame = CGRectInset(self.bounds, 16.f, 4.f);
+    }
 }
 
 @end
@@ -43,9 +49,17 @@
 - (void)drawPlaceholderInRect:(CGRect)rect
 {
     NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-    paragraphStyle.lineHeightMultiple = 1.5f;
+    paragraphStyle.lineHeightMultiple = 1.62f;
 
-    [self.placeholder drawInRect:rect withAttributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:1.f alpha:0.8f], NSFontAttributeName: [UIFont systemFontOfSize:16.f], NSParagraphStyleAttributeName: paragraphStyle}];
+    if ([self respondsToSelector:@selector(separatorInset)])
+    {
+        [self.placeholder drawInRect:rect withAttributes:@{(NSString *)NSForegroundColorAttributeName: [UIColor colorWithWhite:1.f alpha:0.8f], (NSString *)NSFontAttributeName: [UIFont systemFontOfSize:16.f], (NSString *)NSParagraphStyleAttributeName: paragraphStyle}];
+    }
+    else
+    {
+        [[UIColor colorWithWhite:1.f alpha:0.8f] set];
+        [self.placeholder drawAtPoint:CGPointMake(0.f, 0.f) withFont:[UIFont systemFontOfSize:16.f]];
+    }
 }
 
 @end

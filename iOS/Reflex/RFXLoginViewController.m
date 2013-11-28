@@ -27,6 +27,8 @@ static NSString *RFXFooterCellIdentifier = @"DoneCell";
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(done:)];
 
     self.view.backgroundColor = [UIColor colorWithWhite:0.205 alpha:1.000];
+    self.tableView.backgroundView = nil;
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
 
     self.tableView.alwaysBounceVertical = YES;
     [self.tableView registerClass:[RFXLoginViewCell class] forCellReuseIdentifier:RFXLoginCellIdentifier];
@@ -47,7 +49,7 @@ static NSString *RFXFooterCellIdentifier = @"DoneCell";
     NSString *username = ((RFXLoginViewCell *)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]]).textField.text;
     NSString *password = ((RFXLoginViewCell *)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]]).textField.text;
 
-    if (!server || !username || !password)
+    if (!server)
     {
         return;
     }
@@ -68,7 +70,7 @@ static NSString *RFXFooterCellIdentifier = @"DoneCell";
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 3;
+    return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath

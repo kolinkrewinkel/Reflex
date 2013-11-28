@@ -17,7 +17,11 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    self.window.tintColor = [UIColor greenColor];
+
+    if ([self.window respondsToSelector:@selector(tintColor)])
+    {
+        self.window.tintColor = [UIColor greenColor];
+    }
 
 //    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 //    {
@@ -32,7 +36,15 @@
             [navigationController setViewControllers:@[[[RFXLoginViewController alloc] initWithStyle:UITableViewStyleGrouped]]];
         }
 
-        navigationController.navigationBar.barStyle = UIBarStyleBlackTranslucent;
+        if ([self.window respondsToSelector:@selector(tintColor)])
+        {
+            navigationController.navigationBar.barStyle = UIBarStyleBlackTranslucent;
+        }
+        else
+        {
+            navigationController.navigationBar.barStyle = UIBarStyleBlackOpaque;
+        }
+
         self.window.rootViewController = navigationController;
 //    }
 

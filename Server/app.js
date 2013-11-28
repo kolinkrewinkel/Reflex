@@ -82,7 +82,7 @@ app.get('/reflex/', function(request, response)
 
 app.get('/reflex/overview', function(request, response)
 {
-	response.json({'profit': profit, 'ticker': recentTicker, 'recentEntry': entryPrice});
+	response.json({'profit': profit, 'ticker': recentTicker, 'recent_entry': entryPrice, 'bitcoin_count': activeBitcoinQuantity});
 	response.end();
 });
 
