@@ -19,8 +19,8 @@
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.window.tintColor = [UIColor greenColor];
 
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
-    {
+//    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+//    {
         UINavigationController *navigationController = [[UINavigationController alloc] init];
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:@"server"])
@@ -34,7 +34,7 @@
 
         navigationController.navigationBar.barStyle = UIBarStyleBlackTranslucent;
         self.window.rootViewController = navigationController;
-    }
+//    }
 
     [[AFNetworkActivityIndicatorManager sharedManager] setEnabled:YES];
 

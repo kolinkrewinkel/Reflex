@@ -90,7 +90,7 @@
 {
     [self.refreshControl beginRefreshing];
 
-    NSURL *URL = [NSURL URLWithString:@"http://linode.kolinkrewinkel.com:8970/reflex/overview"];
+    NSURL *URL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/reflex/overview", [[NSUserDefaults standardUserDefaults] objectForKey:@"server"]]];
 
     AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:[NSURLRequest requestWithURL:URL]];
     op.responseSerializer = [AFJSONResponseSerializer serializer];
@@ -108,6 +108,7 @@
 
 - (void)receivedJSON:(NSDictionary *)JSON
 {
+    NSLog(@"%@", JSON);
     NSDictionary *ticker = JSON[@"ticker"];
 
     NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
