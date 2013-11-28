@@ -82,15 +82,8 @@ app.get('/reflex/', function(request, response)
 
 app.get('/reflex/overview', function(request, response)
 {
-	client.get("profit", function(err, profit) {
-		if (profit == null)
-		{
-			profit = 0;
-		}
-
-		response.json({'profit': client.get('profit'), 'ticker': recentTicker, 'recentEntry': entryPrice});
-		response.end();
-	});
+	response.json({'profit': profit, 'ticker': recentTicker, 'recentEntry': entryPrice});
+	response.end();
 });
 
 /*
@@ -243,7 +236,7 @@ function enterAtPrice(price)
 {	
 	if (config.live)
 	{
-		btceClient.trade({'pair': 'btc_usd', 'type': 'buy', 'rate': price, 'amount': 0}, function(err, data)
+		btceClient.trade({'pair': 'btc_usd', 'type': 'buy', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
 		{
 			if (err || data == null)
 			{

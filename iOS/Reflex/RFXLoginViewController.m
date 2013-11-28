@@ -56,7 +56,7 @@ static NSString *RFXFooterCellIdentifier = @"DoneCell";
     [[NSUserDefaults standardUserDefaults] setObject:username forKey:@"username"];
     [SSKeychain setPassword:password forService:server account:username];
 
-    [self.navigationController pushViewController:[[RFXOverviewViewController alloc] init] animated:YES];
+    [self.navigationController pushViewController:[[RFXOverviewViewController alloc] initWithStyle:UITableViewStyleGrouped] animated:YES];
 }
 
 #pragma mark - UITableViewDataSource

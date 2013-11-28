@@ -10,6 +10,8 @@
 #import "RFXLoginViewController.h"
 #import "RFXOverviewViewController.h"
 
+#import <AFNetworking/AFNetworkActivityIndicatorManager.h>
+
 @implementation RFXAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -23,7 +25,7 @@
 
         if ([[NSUserDefaults standardUserDefaults] objectForKey:@"server"])
         {
-            [navigationController setViewControllers:@[[[RFXOverviewViewController alloc] init]]];
+            [navigationController setViewControllers:@[[[RFXOverviewViewController alloc] initWithStyle:UITableViewStyleGrouped]]];
         }
         else
         {
@@ -33,6 +35,8 @@
         navigationController.navigationBar.barStyle = UIBarStyleBlackTranslucent;
         self.window.rootViewController = navigationController;
     }
+
+    [[AFNetworkActivityIndicatorManager sharedManager] setEnabled:YES];
 
     [self.window makeKeyAndVisible];
 
