@@ -61,7 +61,7 @@ var entryPrice = null;
 var lastPriceObserved = null;
 var positiveVarianceThreshold = 0.0065;
 var reEntryThreshold = 0.0075;
-var dropExitThreshold = 0.03333;
+var dropExitThreshold = 0.025;
 var profit = 0.00;
 var commissionRate = 0.002;
 
@@ -223,7 +223,7 @@ function tickerUpdated(error, data)
 		}
 		else if (buyPrice >= entryPrice * (1.00 + positiveVarianceThreshold))
 		{
-			console.log("Run is occurring; re-basing entry price.");
+			console.log("Run is occurring; re-basing entry price to " + buyPrice + ".");
 
 			entryPrice = buyPrice;
 		}
