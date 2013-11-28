@@ -206,7 +206,7 @@ function tickerUpdated(error, data)
 
 		if (!orderRequired)
 		{
-			console.log("     Entry: $" + entryPrice + "\n   Current: $" + lastPrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
+			console.log("     Entry: $" + entryPrice + "\n   Current: $" + buyPrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 		}
 
 		if (buyPrice >= minimumPriceToSell && !orderRequired)
