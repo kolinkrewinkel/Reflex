@@ -354,3 +354,8 @@ function commissionedEventOccurred(price)
 
 	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n")
 }
+
+function adjustPrice(amount, positive, includeCommission)
+{
+	
+}
