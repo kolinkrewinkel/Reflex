@@ -10,7 +10,7 @@
 
 @interface RFXOverviewViewController () <NSURLConnectionDelegate, NSURLConnectionDataDelegate>
 
-@property (nonatomic, strong) NSMutableData *downloadedData;
+@property (nonatomic, strong) NSTimer *refreshTimer;
 
 @property (nonatomic, copy) NSString *totalProfit;
 @property (nonatomic, copy) NSString *entryPrice;
@@ -61,8 +61,15 @@
     }
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationBecameActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationResignedActive:) name:UIApplicationDidEnterBackgroundNotification object:nil];
 
     [self fetchData];
+
+    if ([AFNetworkReachabilityManager sharedManager].reachableViaWiFi)
+    {
+        self.refreshTimer = [NSTimer timerWithTimeInterval:2.5 target:self selector:@selector(fetchData) userInfo:nil repeats:YES];
+        [[NSRunLoop mainRunLoop] addTimer:self.refreshTimer forMode:NSRunLoopCommonModes];
+    }
 }
 
 #pragma mark - UI
@@ -76,12 +83,23 @@
 
 - (void)applicationBecameActive:(NSNotification *)notification
 {
+    if ([AFNetworkReachabilityManager sharedManager].reachableViaWiFi && !self.refreshTimer.isValid)
+    {
+        self.refreshTimer = [NSTimer timerWithTimeInterval:2.5 target:self selector:@selector(fetchData) userInfo:nil repeats:YES];
+        [[NSRunLoop mainRunLoop] addTimer:self.refreshTimer forMode:NSRunLoopCommonModes];
+    }
+
     __weak typeof(self) weakSelf = self;
     double delayInSeconds = 0.5;
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
         [weakSelf fetchData];
     });
+}
+
+- (void)applicationResignedActive:(NSNotification *)notification
+{
+    [self.refreshTimer invalidate];
 }
 
 #pragma mark - API
@@ -364,6 +382,13 @@
     }
 
     return cell;
+}
+
+#pragma mark - Cleanup
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end
