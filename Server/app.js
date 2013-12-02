@@ -32,6 +32,7 @@ var app = express(options);
 var redis = require('redis');
 var client = redis.createClient();
 var config = null;
+var apns = require('apn');
 
 /* 
  * Broker API
@@ -86,6 +87,16 @@ app.get('/reflex/overview', function(request, response)
 	response.end();
 });
 
+app.post('/reflex/register', function(request, response)
+{
+	var deviceToken = request.body.registration.device_token;
+	
+	response.writeHead(201, {'Content-Type': 'application/json'});
+	response.end();
+
+	client.rpush("device_ids", deviceToken);
+});
+
 /*
  * Trading Implementation
  */
@@ -113,7 +124,7 @@ function init()
 	externalAccessUser = config.access_user;
 	externalAccessToken = config.access_token;
 
-	client.select(3, function(error, result)
+	client.select(config.redis_id, function(error, result)
 	{
 		if (error)
 		{
@@ -135,7 +146,32 @@ function init()
 			console.log("Previous profit was " + storedProfit);
 		});
 		
-		initializeClient(config.api_key, config.secret);
+		// initializeClient(config.api_key, config.secret);
+	});
+
+	var apnsOptions = {
+		cert: config.certificate_file_path,			/* Certificate file path */
+		key:  config.key_file_path,					/* Key file path */
+		passphrase: config.key_passphrase,  	 	/* A passphrase for the Key file */
+		gateway: 'gateway.sandbox.push.apple.com',	/* gateway address */
+		port: 2195,                       			/* gateway port */
+		enhanced: true,                   			/* enable enhanced format */
+	 // errorCallback: pushError,         			/* Callback when error occurs function(err,notification) */
+		cacheLength: 10                  			/* Number of notifications to cache for error purposes */
+	};
+
+	var apnsConnection = new apns.Connection(apnsOptions);
+
+	var expiration = Math.floor(Date.now() / 1000) + 3600;
+	client.hgetall("device_ids" , function(err, identifier) {
+		var device = new apn.Device(token);
+		
+		var notification = new apn.Notification();
+
+		notification.expiry = expiration; // Expires 1 hour from now.
+		notification.alert = "Testing!";
+
+		apnConnection.pushNotification(notification, device);
 	});
 }
 
@@ -357,5 +393,5 @@ function commissionedEventOccurred(price)
 
 function adjustPrice(amount, positive, includeCommission)
 {
-	
+
 }
