@@ -10,31 +10,17 @@ var http = require('http')
  */
 
 var express = require('express');
+var redis = require('redis');
+var apns = require('apn');
 
-var externalAccessUser = null;
-var externalAccessToken = null;
-
-// var hskey = fs.readFileSync('./ssl/server.key');
-// var hscert = fs.readFileSync('./ssl/server.crt');
-
-var options = {
-	// key: hskey,
-	// cert: hscert
-};
-
+var options = {};
 var app = express(options);
 app.use(express.bodyParser());
 
-// app.use(express.basicAuth(function(username, password)
-// {
-// 	return (username === externalAccessUser && password === externalAccessToken);
-// }));
-
-var redis = require('redis');
-var client = redis.createClient();
 var config = null;
 
-var apns = require('apn');
+var client = redis.createClient();
+
 var apnsConnection = null;
 
 /* 
@@ -427,7 +413,7 @@ function commissionedEventOccurred(price)
 	}
 }
 
-function adjustPrice(amount, positive, includeCommission)
+function incrementPrice(amount, includeCommission)
 {
 
 }
