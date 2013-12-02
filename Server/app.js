@@ -102,6 +102,36 @@ app.post('/reflex/register', function(request, response)
 });
 
 /*
+ * Push Notifications
+ */
+
+function sendNotificationWithText(text)
+{
+	client.lrange("device_ids", 0, -1, function(err, identifiers)
+	{
+		var expiration = Math.floor(Date.now() / 1000) + 3600;
+
+		for (var idx = 0, len = identifiers.length; idx < len; idx++)
+		{
+			var identifier = identifiers[idx];
+
+			if (err || identifier == null)
+			{
+				return;
+			}
+
+			var device = new apns.Device(identifier);
+			
+			var notification = new apns.Notification();
+			notification.expiry = expiration; // Expires 1 hour from now.
+			notification.alert = text;
+
+			apnsConnection.pushNotification(notification, device);
+		}
+	});
+}
+
+/*
  * Trading Implementation
  */
 
@@ -167,32 +197,6 @@ function init()
 
 	apnsConnection = new apns.Connection(apnsOptions);
 	sendNotificationWithText('Node app started.');
-}
-
-function sendNotificationWithText(text)
-{
-	client.lrange("device_ids", 0, -1, function(err, identifiers)
-	{
-		var expiration = Math.floor(Date.now() / 1000) + 3600;
-
-		for (var idx = 0, len = identifiers.length; idx < len; idx++)
-		{
-			var identifier = identifiers[idx];
-
-			if (err || identifier == null)
-			{
-				return;
-			}
-
-			var device = new apns.Device(identifier);
-			
-			var notification = new apns.Notification();
-			notification.expiry = expiration; // Expires 1 hour from now.
-			notification.alert = text;
-
-			apnsConnection.pushNotification(notification, device);
-		}
-	});
 }
 
 function initializeClient(key, secret)
@@ -410,8 +414,8 @@ function commissionedEventOccurred(price)
 
 	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n");
 
-	var percentageChange = (lastProfitNotified - profit) / profit;
-	if (Math.abs(percentageChange) > .05)
+	var percentageChange = (Math.abs((lastProfitNotified - profit) / profit)) * 100;
+	if (percentageChange > 5.0)
 	{
 		var roundedProfit = Math.round(profit * 100) / 100;
 		var roundedLastProfit = Math.round(lastProfitNotified * 100) / 100;
