@@ -52,21 +52,23 @@
 
     [self.window makeKeyAndVisible];
 
-    double delayInSeconds = 2.0;
-    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound];
-    });
-
     return YES;
 }
 
-- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)data
 {
+    NSString *identifier = [[[[NSString stringWithFormat:@"%@", data] stringByReplacingOccurrencesOfString:@" " withString:@""] stringByReplacingOccurrencesOfString:@"<" withString:@""] stringByReplacingOccurrencesOfString:@">" withString:@""];
+    NSDictionary *JSON = @{@"device_token": identifier};
+
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:[[[NSUserDefaults standardUserDefaults] objectForKey:@"server"] stringByAppendingString:@"/reflex/register"]] cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData timeoutInterval:30];
 
     NSError *error = nil;
-    [request setHTTPBody:[NSJSONSerialization dataWithJSONObject:@{@"registration": @{@"device_token": [[NSString alloc] initWithData:deviceToken encoding:NSUTF8StringEncoding]}} options:0 error:&error]];
+    [request setHTTPBody:[NSJSONSerialization dataWithJSONObject:JSON options:0 error:&error]];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    request.HTTPMethod = @"POST";
+
+    NSLog(@"%@", error);
+    NSLog(@"%@", JSON);
 
     AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
     [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {

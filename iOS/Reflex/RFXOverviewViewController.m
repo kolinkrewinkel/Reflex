@@ -128,6 +128,12 @@
 {
     NSDictionary *ticker = JSON[@"ticker"];
 
+    if (!ticker || [ticker isKindOfClass:[NSNull class]])
+    {
+        [self.refreshControl endRefreshing];
+        return;
+    }
+
     NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
     numberFormatter.numberStyle = NSNumberFormatterCurrencyStyle;
 

@@ -23,6 +23,7 @@ var options = {
 };
 
 var app = express(options);
+app.use(express.bodyParser());
 
 // app.use(express.basicAuth(function(username, password)
 // {
@@ -32,7 +33,9 @@ var app = express(options);
 var redis = require('redis');
 var client = redis.createClient();
 var config = null;
+
 var apns = require('apn');
+var apnsConnection = null;
 
 /* 
  * Broker API
@@ -64,6 +67,7 @@ var positiveVarianceThreshold = 0.0065;
 var reEntryThreshold = 0.0075;
 var dropExitThreshold = 0.025;
 var profit = 0.00;
+var lastProfitNotified = profit;
 var commissionRate = 0.002;
 
 var saleInProgress = false;
@@ -89,7 +93,7 @@ app.get('/reflex/overview', function(request, response)
 
 app.post('/reflex/register', function(request, response)
 {
-	var deviceToken = request.body.registration.device_token;
+	var deviceToken = request.body.device_token;
 	
 	response.writeHead(201, {'Content-Type': 'application/json'});
 	response.end();
@@ -143,10 +147,11 @@ function init()
 
 			storedProfit = reply;
 		    profit += storedProfit;
+		    lastProfitNotified = profit;
 			console.log("Previous profit was " + storedProfit);
 		});
 		
-		// initializeClient(config.api_key, config.secret);
+		initializeClient(config.api_key, config.secret);
 	});
 
 	var apnsOptions = {
@@ -160,18 +165,33 @@ function init()
 		cacheLength: 10                  			/* Number of notifications to cache for error purposes */
 	};
 
-	var apnsConnection = new apns.Connection(apnsOptions);
+	apnsConnection = new apns.Connection(apnsOptions);
+	sendNotificationWithText('Node app started.');
+}
 
-	var expiration = Math.floor(Date.now() / 1000) + 3600;
-	client.hgetall("device_ids" , function(err, identifier) {
-		var device = new apn.Device(token);
-		
-		var notification = new apn.Notification();
+function sendNotificationWithText(text)
+{
+	client.lrange("device_ids", 0, -1, function(err, identifiers)
+	{
+		var expiration = Math.floor(Date.now() / 1000) + 3600;
 
-		notification.expiry = expiration; // Expires 1 hour from now.
-		notification.alert = "Testing!";
+		for (var idx = 0, len = identifiers.length; idx < len; idx++)
+		{
+			var identifier = identifiers[idx];
 
-		apnConnection.pushNotification(notification, device);
+			if (err || identifier == null)
+			{
+				return;
+			}
+
+			var device = new apns.Device(identifier);
+			
+			var notification = new apns.Notification();
+			notification.expiry = expiration; // Expires 1 hour from now.
+			notification.alert = text;
+
+			apnsConnection.pushNotification(notification, device);
+		}
 	});
 }
 
@@ -388,7 +408,19 @@ function commissionedEventOccurred(price)
 
 	client.set("profit", profit);
 
-	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n")
+	console.log("\n===================\nTotal Profit: $" + profit + "\n===================\n");
+
+	var percentageChange = (lastProfitNotified - profit) / profit;
+	if (Math.abs(percentageChange) > .05)
+	{
+		var roundedProfit = Math.round(profit * 100) / 100;
+		var roundedLastProfit = Math.round(lastProfitNotified * 100) / 100;
+		var roundedChange = Math.round(percentageChange * 100) / 100;
+
+		sendNotificationWithText("Profit is now $" + roundedProfit + ', a ' + roundedChange + '% change from last ($' + roundedLastProfit + ').');
+
+		lastProfitNotified = profit;
+	}
 }
 
 function adjustPrice(amount, positive, includeCommission)
