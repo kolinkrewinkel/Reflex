@@ -1,3 +1,21 @@
+/*
+ * Shell
+ */
+
+var args = process.argv.splice(2);
+
+var shouldResetProfit = false;
+
+for (var idx = 0, len = args.length; idx < len; idx++)
+{
+	var arg = args[idx];
+
+	if (arg === '--clear')
+	{
+		shouldResetProfit = true;
+	}
+}
+
 /* 
  * Node Dependencies
  */
@@ -123,6 +141,54 @@ function sendNotificationWithText(text)
 
 function init()
 {
+	loadConfig();
+
+	client.select(config.redis_id, function(error, result)
+	{
+		if (error)
+		{
+			console.log('Failed to select database. (' + error + ')')
+			return;
+		}
+
+		client.get('profit', function(err, reply)
+		{
+			if (reply == null || isNaN(reply) || reply == false || reply < 0 || shouldResetProfit)
+			{
+				client.set('profit', 0);
+				
+				var reason = shouldResetProfit ? '(Instructed to reset profit.)' : '(NaN or nonexistant.)';
+				console.log('Clearing profit. ' + reason);
+
+				return;
+			}
+
+			storedProfit = reply;
+		    profit += storedProfit;
+		    lastProfitNotified = profit;
+
+			console.log('Restoring profit to ' + profit);
+		});
+		
+		initializeClient(config.api_key, config.secret);
+	});
+
+	var apnsOptions = {
+		cert: config.certificate_file_path,			/* Certificate file path */
+		key:  config.key_file_path,					/* Key file path */
+		passphrase: config.key_passphrase,  	 	/* A passphrase for the Key file */
+		gateway: 'gateway.sandbox.push.apple.com',	/* gateway address */
+		port: 2195,                       			/* gateway port */
+		enhanced: true,                   			/* enable enhanced format */
+		cacheLength: 5                  			/* Number of notifications to cache for error purposes */
+	};
+
+	apnsConnection = new apns.Connection(apnsOptions);
+	sendNotificationWithText('Node app initialized…');
+}
+
+function loadConfig()
+{
 	var data = fs.readFileSync('./config.json');
 
 	try
@@ -140,49 +206,6 @@ function init()
 	{
 		console.log('Successfully read configuration file...');
 	}
-
-	externalAccessUser = config.access_user;
-	externalAccessToken = config.access_token;
-
-	client.select(config.redis_id, function(error, result)
-	{
-		if (error)
-		{
-			console.log('Failed to select database. (' + error + ')')
-			return;
-		}
-
-		client.get("profit", function(err, reply) {
-			if (reply == null || isNaN(reply) || reply == false || reply < 0)
-			{
-				client.set("profit", 0);
-				console.log("Setting profit to 0 (NaN or nonexistant.)");
-
-				return;
-			}
-
-			storedProfit = reply;
-		    profit += storedProfit;
-		    lastProfitNotified = profit;
-			console.log("Previous profit was " + storedProfit);
-		});
-		
-		initializeClient(config.api_key, config.secret);
-	});
-
-	var apnsOptions = {
-		cert: config.certificate_file_path,			/* Certificate file path */
-		key:  config.key_file_path,					/* Key file path */
-		passphrase: config.key_passphrase,  	 	/* A passphrase for the Key file */
-		gateway: 'gateway.sandbox.push.apple.com',	/* gateway address */
-		port: 2195,                       			/* gateway port */
-		enhanced: true,                   			/* enable enhanced format */
-	 // errorCallback: pushError,         			/* Callback when error occurs function(err,notification) */
-		cacheLength: 10                  			/* Number of notifications to cache for error purposes */
-	};
-
-	apnsConnection = new apns.Connection(apnsOptions);
-	sendNotificationWithText('Node app started.');
 }
 
 function initializeClient(key, secret)
@@ -279,7 +302,7 @@ function tickerUpdated(error, data)
 }
 
 function enterAtPrice(price)
-{	
+{
 	if (config.live)
 	{
 		btceClient.trade({'pair': 'btc_usd', 'type': 'buy', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
