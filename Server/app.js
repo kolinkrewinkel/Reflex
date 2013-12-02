@@ -195,7 +195,7 @@ function initializeClient(key, secret)
 }
 
 function beginRefreshingWithInterval(seconds)
-{	
+{
 	console.log('Ticker started.')
 	setInterval(function() {
 		btceClient.ticker({ pair: 'btc_usd' }, tickerUpdated);
