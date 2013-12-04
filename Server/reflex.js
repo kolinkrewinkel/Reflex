@@ -236,14 +236,9 @@ function initializeClient(key, secret)
 {
 	btceClient = new btce(key, secret);
 
-	// console.log('Initialized client.');
+	console.log('Initialized client.');
 
-	// beginRefreshingWithInterval(1.00);
-
-	// var halfHourInterval = 30 * 60 * 1000;
-	// setInterval(function() {
-		adjustBitcoinsInPlay();
-	// }, halfHourInterval);
+	beginRefreshingWithInterval(1.00);
 }
 
 function beginRefreshingWithInterval(seconds)
