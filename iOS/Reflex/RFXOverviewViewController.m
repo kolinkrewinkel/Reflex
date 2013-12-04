@@ -15,6 +15,7 @@
 @property (nonatomic, copy) NSString *totalProfit;
 @property (nonatomic, copy) NSString *entryPrice;
 @property (nonatomic, copy) NSString *bitcoinCount;
+@property (nonatomic, strong) UIStepper *quantityStepper;
 
 @property (nonatomic, copy) NSString *buyPrice;
 @property (nonatomic, copy) NSString *lastPrice;
@@ -44,6 +45,12 @@
     self.recentHigh = @"";
     self.recentLow = @"";
     self.volume = @"";
+
+    self.quantityStepper = [[UIStepper alloc] init];
+    self.quantityStepper.maximumValue = 50;
+    self.quantityStepper.minimumValue = 0.1;
+    self.quantityStepper.stepValue = 0.1;
+    [self.quantityStepper addTarget:self action:@selector(stepperChanged:) forControlEvents:UIControlEventValueChanged];
 
     self.title = @"Reflex";
     self.view.backgroundColor = [UIColor colorWithWhite:0.205 alpha:1.000];
@@ -331,17 +338,14 @@
         }
         else if (indexPath.row == 2)
         {
-            cell.textLabel.text = @"BTC In-Play";
-
             UIStepper *stepper = (UIStepper *)cell.accessoryView;
             if (![stepper isKindOfClass:[UIStepper class]])
             {
-                stepper = [[UIStepper alloc] init];
-                stepper.value = [self.bitcoinCount doubleValue];
-                stepper.maximumValue = 50;
-                stepper.minimumValue = 0.1;
-                cell.accessoryView = stepper;
+                self.quantityStepper.value = [self.bitcoinCount doubleValue];
+                cell.accessoryView = self.quantityStepper;
             }
+
+            cell.textLabel.text = [NSString stringWithFormat:@"BTC In Play (%@)", [@(self.quantityStepper.value) stringValue]];
         }
     }
     else
@@ -378,25 +382,54 @@
         }
     }
 
-    CGFloat alpha = 0.f;
-    [label.textColor getWhite:NULL alpha:&alpha];
-
-    if (alpha != 0.7f)
+    if ([label isKindOfClass:[UILabel class]])
     {
-        double delayInSeconds = 2.0;
-        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-            label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7f];
+        CGFloat alpha = 0.f;
+        [label.textColor getWhite:NULL alpha:&alpha];
 
-            CATransition *transition = [CATransition animation];
-            transition.type = kCATransitionFade;
-            transition.duration = 0.375;
+        if (alpha != 0.7f)
+        {
+            double delayInSeconds = 2.0;
+            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+            dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+                label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7f];
 
-            [label.layer addAnimation:transition forKey:nil];
-        });
+                CATransition *transition = [CATransition animation];
+                transition.type = kCATransitionFade;
+                transition.duration = 0.375;
+
+                [label.layer addAnimation:transition forKey:nil];
+            });
+        }
     }
 
     return cell;
+}
+
+#pragma mark - UIEvent
+
+- (void)stepperChanged:(UIStepper *)stepper
+{
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
+    cell.textLabel.text = [NSString stringWithFormat:@"BTC In Play (%@)", [@(self.quantityStepper.value) stringValue]];
+
+    NSDictionary *JSON = @{@"bitcoin_quantity": @(self.quantityStepper.value)};
+
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:[[[NSUserDefaults standardUserDefaults] objectForKey:@"server"] stringByAppendingString:@"/reflex/volume"]] cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData timeoutInterval:30];
+
+    NSError *error = nil;
+    [request setHTTPBody:[NSJSONSerialization dataWithJSONObject:JSON options:0 error:&error]];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    request.HTTPMethod = @"POST";
+
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"%@", error);
+    }];
+
+    [operation start];
 }
 
 #pragma mark - Cleanup

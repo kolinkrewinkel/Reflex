@@ -112,6 +112,8 @@ app.post('/reflex/volume', function(request, response)
 
 	response.writeHead(201, {'Content-Type': 'application/json'});
 	response.end();
+
+	sendNotificationWithText('Staged Bitcoin volume change to ' + replacementBitcoinQuantity + '.');
 });
 
 /*
@@ -329,7 +331,7 @@ function enterAtPrice(price)
 {
 	if (replacementBitcoinQuantity != null)
 	{
-		activeBitcoinQuantity = replacementBitcoinQuantity;
+		setActiveBitcoinQuantity(replacementBitcoinQuantity);
 		replacementBitcoinQuantity = null;
 	}
 
