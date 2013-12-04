@@ -375,31 +375,32 @@ function sellAtPrice(price)
 {
 	if (config.live)
 	{
-		btceClient.trade({'pair': 'btc_usd', 'type': 'sell', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data) {
-					if (err || data == null)
+		btceClient.trade({'pair': 'btc_usd', 'type': 'sell', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
+		{
+			if (err || data == null)
+			{
+				console.log(err);
+				return;
+			}
+
+			var response = data['return'];
+			var orderID = resposne['order_id'];
+
+			if (orderID === 0)
+			{
+				soldSuccessfully(price);
+			}
+			else
+			{
+				btceClient.cancelOrder(orderID, function(err, data)
+				{
+					if (err)
 					{
 						console.log(err);
 						return;
 					}
-
-					var response = data['return'];
-					var orderID = resposne['order_id'];
-
-					if (orderID === 0)
-					{
-						soldSuccessfully(price);
-					}
-					else
-					{
-						btceClient.cancelOrder(orderID, function(err, data)
-						{
-							if (err)
-							{
-								console.log(err);
-								return;
-							}
-						});
-					}
+				});
+			}
 			});
 	}
 	else
