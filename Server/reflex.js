@@ -103,6 +103,8 @@ app.post('/reflex/register', function(request, response)
 	response.writeHead(201, {'Content-Type': 'application/json'});
 	response.end();
 
+	console.log('Device registered with ID: ' + deviceToken);
+
 	client.rpush("device_ids", deviceToken);
 });
 
@@ -112,6 +114,8 @@ app.post('/reflex/volume', function(request, response)
 
 	response.writeHead(201, {'Content-Type': 'application/json'});
 	response.end();
+
+	console.log('Set replacement Bitcoin quantity to ' + replacementBitcoinQuantity + '.');
 
 	sendNotificationWithText('Staged Bitcoin volume change to ' + replacementBitcoinQuantity + '.');
 });
@@ -282,6 +286,8 @@ function tickerUpdated(error, data)
 
 	if (entryPrice == null && startingOrderRequired)
 	{
+		console.log('Placing initial order...');
+
 		enterAtPrice(lastPrice); // Place the initial order.
 	}
 	else if (entryPrice != null)
@@ -337,6 +343,8 @@ function enterAtPrice(price)
 
 	if (config.live)
 	{
+		console.log('Buying...');
+
 		btceClient.trade({'pair': 'btc_usd', 'type': 'buy', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
 		{
 			if (err || data == null)
@@ -354,6 +362,8 @@ function enterAtPrice(price)
 			}
 			else
 			{
+				console.log('Cancelling...');
+
 				btceClient.cancelOrder(orderID, function(err, data)
 				{
 					if (err)
@@ -361,6 +371,8 @@ function enterAtPrice(price)
 						console.log(err);
 						return;
 					}
+
+					console.log('Cancelled.');
 				});
 			}
 		});
@@ -402,6 +414,8 @@ function sellAtPrice(price)
 {
 	if (config.live)
 	{
+		console.log('Selling...');
+
 		btceClient.trade({'pair': 'btc_usd', 'type': 'sell', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
 		{
 			if (err || data == null)
@@ -419,8 +433,12 @@ function sellAtPrice(price)
 			}
 			else
 			{
+				console.log('Cancelling...');
+
 				btceClient.cancelOrder(orderID, function(err, data)
 				{
+					console.log('Cancelled.');
+
 					if (err)
 					{
 						console.log(err);
@@ -487,4 +505,6 @@ function setActiveBitcoinQuantity(quantity)
 {
 	activeBitcoinQuantity = quantity;
 	client.set('active_bitcoin_quantity', activeBitcoinQuantity);
+
+	console.log('Set active Bitcoin quantity to: ' + activeBitcoinQuantity);
 }
