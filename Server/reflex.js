@@ -58,7 +58,7 @@ var btceClient = null;
  * Trading Implementation
  */
 
-var activeBitcoinQuantity = 1;
+var activeBitcoinQuantity = 0.4;
 var replacementBitcoinQuantity = null;
 
 var startingOrderRequired = true;
