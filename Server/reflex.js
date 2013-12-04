@@ -78,7 +78,6 @@ var commissionRate = 0.002;
 var saleInProgress = false;
 var buyInProgress = false;
 
-app.listen(8970);
 init();
 
 /*
@@ -185,12 +184,15 @@ function init()
 		{
 			if (reply == null || isNaN(reply) || reply == false || reply < 0 || shouldReset)
 			{
-				client.set('profit', 0);
-				
+				client.del('profit', 'active_bitcoin_quantity', 'first_entry', 'device_ids');
+								
 				var reason = shouldReset ? '(Instructed to reset profit.)' : '(NaN or nonexistant.)';
 				console.log('Clearing profit. ' + reason);
 
-				return;
+				if (shouldReset)
+				{
+					process.exit(code=0);
+				}
 			}
 
 			storedProfit = reply;
@@ -200,7 +202,10 @@ function init()
 			console.log('Restoring profit to $' + profit + ' from disk.');
 		});
 		
-		initializeClient(config.api_key, config.secret);
+		if (!shouldReset)
+		{
+			initializeClient(config.api_key, config.secret);
+		}
 	});
 
 	var apnsOptions = {
@@ -213,8 +218,13 @@ function init()
 		cacheLength: 5                  			/* Number of notifications to cache for error purposes */
 	};
 
-	apnsConnection = new apns.Connection(apnsOptions);
-	sendNotificationWithText('Node app initialized…');
+	if (!shouldReset)
+	{
+		apnsConnection = new apns.Connection(apnsOptions);
+		sendNotificationWithText('Node app initialized…');
+
+		app.listen(config.port_number);
+	}
 }
 
 function loadConfig()
