@@ -59,6 +59,7 @@ var btceClient = null;
  */
 
 var activeBitcoinQuantity = 1;
+var replacementBitcoinQuantity = null;
 
 var startingOrderRequired = true;
 var orderRequired = false;
@@ -103,6 +104,14 @@ app.post('/reflex/register', function(request, response)
 	response.end();
 
 	client.rpush("device_ids", deviceToken);
+});
+
+app.post('/reflex/volume', function(request, response)
+{
+	replacementBitcoinQuantity = request.body.bitcoin_quantity;
+
+	response.writeHead(201, {'Content-Type': 'application/json'});
+	response.end();
 });
 
 /*
@@ -150,6 +159,21 @@ function init()
 			console.log('Failed to select database. (' + error + ')')
 			return;
 		}
+
+		client.get('first_entry', function(error, result)
+		{
+			firstEntry = result;
+		});
+
+		client.get('active_bitcoin_quantity', function(err, reply)
+		{
+			if (err || reply == null)
+			{
+				return;
+			}
+
+			activeBitcoinQuantity = reply;
+		});
 
 		client.get('profit', function(err, reply)
 		{
@@ -308,6 +332,12 @@ function tickerUpdated(error, data)
 
 function enterAtPrice(price)
 {
+	if (replacementBitcoinQuantity != null)
+	{
+		activeBitcoinQuantity = replacementBitcoinQuantity;
+		replacementBitcoinQuantity = null;
+	}
+
 	if (config.live)
 	{
 		btceClient.trade({'pair': 'btc_usd', 'type': 'buy', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
@@ -454,54 +484,6 @@ function setFirstEntry(newFirstEntry)
 {
 	client.set('first_entry', newFirstEntry);
 	firstEntry = newFirstEntry;
-}
-
-function adjustBitcoinsInPlay()
-{
-	client.get('first_entry', function(error, result)
-	{
-		if (error || result == null)
-		{
-			setActiveBitcoinQuantity(1);
-			return;
-		}
-
-		var firstEntry = result;
-
-		if (config.live)
-		{
-			// Pull data on balance from BTC-E
-
-			btceClient.getInfo(function(error, response)
-			{
-				if (error || response == null)
-				{
-					console.log('Error fetching account info. (' + error + ')');
-					return;
-				}
-
-				var usdBalance = response['return']['funds']['usd'];
-				setActiveBitcoinQuantityGivenBalance(usdBalance, firstEntry);
-			});
-		}
-		else
-		{
-			// Pull from "profit" figure.
-			setActiveBitcoinQuantityGivenBalance(profit, firstEntry);
-		}
-	});
-}
-
-function setActiveBitcoinQuantityGivenBalance(balance, firstEntry)
-{
-	if (balance > firstEntry)
-	{
-		setActiveBitcoinQuantity();
-	}
-	else
-	{
-
-	}
 }
 
 function setActiveBitcoinQuantity(quantity)

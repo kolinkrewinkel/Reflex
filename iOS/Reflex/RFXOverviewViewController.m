@@ -305,7 +305,7 @@
 
     UILabel *label = (UILabel *)cell.accessoryView;
 
-    if (!label)
+    if (!label || ![label isKindOfClass:[UILabel class]])
     {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.f, 0.f, 110.f, 40.f)];
         label.backgroundColor = cell.backgroundColor;
@@ -332,7 +332,16 @@
         else if (indexPath.row == 2)
         {
             cell.textLabel.text = @"BTC In-Play";
-            label.text = self.bitcoinCount;
+
+            UIStepper *stepper = (UIStepper *)cell.accessoryView;
+            if (![stepper isKindOfClass:[UIStepper class]])
+            {
+                stepper = [[UIStepper alloc] init];
+                stepper.value = [self.bitcoinCount doubleValue];
+                stepper.maximumValue = 50;
+                stepper.minimumValue = 0.1;
+                cell.accessoryView = stepper;
+            }
         }
     }
     else
