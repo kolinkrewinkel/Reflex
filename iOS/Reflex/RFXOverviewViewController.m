@@ -146,9 +146,23 @@
 
     NSArray *textLabels = [self labels];
 
-    self.totalProfit = [numberFormatter stringFromNumber:JSON[@"profit"]];
-    self.entryPrice = [numberFormatter stringFromNumber:JSON[@"recent_entry"]];
-    self.bitcoinCount = [JSON[@"bitcoin_count"] stringValue];
+    NSString *profit = [numberFormatter stringFromNumber:JSON[@"profit"]];
+    if (profit)
+    {
+        self.totalProfit = profit;
+    }
+
+    NSString *recentEntry = [numberFormatter stringFromNumber:JSON[@"recent_entry"]];
+    if (recentEntry)
+    {
+        self.entryPrice = recentEntry;
+    }
+
+    NSString *bitcoinCount = [JSON[@"bitcoin_count"] stringValue];
+    if (bitcoinCount)
+    {
+        self.bitcoinCount = bitcoinCount;
+    }
 
     self.buyPrice = [numberFormatter stringFromNumber:ticker[@"buy"]];
     self.lastPrice = [numberFormatter stringFromNumber:ticker[@"last"]];
