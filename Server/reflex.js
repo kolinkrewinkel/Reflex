@@ -4,7 +4,7 @@
 
 var args = process.argv.splice(2);
 
-var shouldResetProfit = false;
+var shouldReset = false;
 
 for (var idx = 0, len = args.length; idx < len; idx++)
 {
@@ -12,7 +12,7 @@ for (var idx = 0, len = args.length; idx < len; idx++)
 
 	if (arg === '--clear')
 	{
-		shouldResetProfit = true;
+		shouldReset = true;
 	}
 }
 
@@ -153,11 +153,11 @@ function init()
 
 		client.get('profit', function(err, reply)
 		{
-			if (reply == null || isNaN(reply) || reply == false || reply < 0 || shouldResetProfit)
+			if (reply == null || isNaN(reply) || reply == false || reply < 0 || shouldReset)
 			{
 				client.set('profit', 0);
 				
-				var reason = shouldResetProfit ? '(Instructed to reset profit.)' : '(NaN or nonexistant.)';
+				var reason = shouldReset ? '(Instructed to reset profit.)' : '(NaN or nonexistant.)';
 				console.log('Clearing profit. ' + reason);
 
 				return;
@@ -167,7 +167,7 @@ function init()
 		    profit += storedProfit;
 		    lastProfitNotified = profit;
 
-			console.log('Restoring profit to ' + profit);
+			console.log('Restoring profit to $' + profit + ' from disk.');
 		});
 		
 		initializeClient(config.api_key, config.secret);
@@ -215,6 +215,11 @@ function initializeClient(key, secret)
 	console.log('Initialized client.');
 
 	beginRefreshingWithInterval(1.00);
+
+	var halfHourInterval = 30 * 60 * 1000;
+	setInterval(function() {
+		adjustBitcoinsInPlay();
+	}, halfHourInterval);
 }
 
 function beginRefreshingWithInterval(seconds)
@@ -355,7 +360,15 @@ function marketEntered(error, result)
 	entryPrice = result["price"];
 	startingOrderRequired = false;
 
-	console.log("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\nEntered at price: " + entryPrice + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");	               
+	console.log("\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\nEntered at price: " + entryPrice + "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+
+	client.get('first_entry', function(error, result)
+	{
+		if (result == null)
+		{
+			client.set('first_entry', entryPrice);
+		}
+	});
 }
 
 function sellAtPrice(price)
@@ -436,7 +449,20 @@ function commissionedEventOccurred(price)
 	}
 }
 
-function incrementPrice(amount, includeCommission)
+function adjustBitcoinsInPlay()
 {
+	// if (config.live)
+	// {
+		// Fetch available balance.
 
+		btceClient.getInfo(function(error, result))
+		{
+			if (error)
+			{
+				console.log(erorr);
+				return;
+			}
+			console.log(result);	
+		}
+	// }
 }
