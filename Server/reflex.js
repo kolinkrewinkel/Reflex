@@ -212,14 +212,14 @@ function initializeClient(key, secret)
 {
 	btceClient = new btce(key, secret);
 
-	console.log('Initialized client.');
+	// console.log('Initialized client.');
 
-	beginRefreshingWithInterval(1.00);
+	// beginRefreshingWithInterval(1.00);
 
-	var halfHourInterval = 30 * 60 * 1000;
-	setInterval(function() {
+	// var halfHourInterval = 30 * 60 * 1000;
+	// setInterval(function() {
 		adjustBitcoinsInPlay();
-	}, halfHourInterval);
+	// }, halfHourInterval);
 }
 
 function beginRefreshingWithInterval(seconds)
@@ -366,7 +366,7 @@ function marketEntered(error, result)
 	{
 		if (result == null)
 		{
-			client.set('first_entry', entryPrice);
+			setFirstEntry(entryPrice);
 		}
 	});
 }
@@ -450,20 +450,62 @@ function commissionedEventOccurred(price)
 	}
 }
 
+function setFirstEntry(newFirstEntry)
+{
+	client.set('first_entry', newFirstEntry);
+	firstEntry = newFirstEntry;
+}
+
 function adjustBitcoinsInPlay()
 {
-	// if (config.live)
-	// {
-		// Fetch available balance.
-
-		btceClient.getInfo(function(error, result))
+	client.get('first_entry', function(error, result)
+	{
+		if (error || result == null)
 		{
-			if (error)
-			{
-				console.log(erorr);
-				return;
-			}
-			console.log(result);	
+			setActiveBitcoinQuantity(1);
+			return;
 		}
-	// }
+
+		var firstEntry = result;
+
+		if (config.live)
+		{
+			// Pull data on balance from BTC-E
+
+			btceClient.getInfo(function(error, response)
+			{
+				if (error || response == null)
+				{
+					console.log('Error fetching account info. (' + error + ')');
+					return;
+				}
+
+				var usdBalance = response['return']['funds']['usd'];
+				setActiveBitcoinQuantityGivenBalance(usdBalance, firstEntry);
+			});
+		}
+		else
+		{
+			// Pull from "profit" figure.
+			setActiveBitcoinQuantityGivenBalance(profit, firstEntry);
+		}
+	});
+}
+
+function setActiveBitcoinQuantityGivenBalance(balance, firstEntry)
+{
+	if (balance > firstEntry)
+	{
+		setActiveBitcoinQuantity();
+	}
+	else
+	{
+
+	}
+}
+
+function setActiveBitcoinQuantity(quantity)
+{
+	activeBitcoinQuantity = quantity;
+	client.set('active_bitcoin_quantity', activeBitcoinQuantity);
 }
