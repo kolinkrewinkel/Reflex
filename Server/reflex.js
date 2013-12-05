@@ -104,7 +104,7 @@ app.post('/reflex/register', function(request, response)
 
 	console.log('Device registered with ID: ' + deviceToken);
 
-	client.rpush("device_ids", deviceToken);
+	client.sadd("device_ids", deviceToken);
 });
 
 app.post('/reflex/volume', function(request, response)
@@ -125,7 +125,7 @@ app.post('/reflex/volume', function(request, response)
 
 function sendNotificationWithText(text)
 {
-	client.lrange("device_ids", 0, -1, function(err, identifiers)
+	client.smembers("device_ids", 0, -1, function(err, identifiers)
 	{
 		var expiration = Math.floor(Date.now() / 1000) + 3600;
 
@@ -294,8 +294,8 @@ function tickerUpdated(error, data)
 	var sellPrice = ticker['sell'];
 	var buyPrice = ticker['buy'];
 
-	var likelyPriceToBuy = sellPrice + 0.01;
-	var likelyPriceToSell = buyPrice - 0.01;
+	var likelyPriceToBuy = sellPrice + 0.50;
+	var likelyPriceToSell = buyPrice - 0.50;
 
 	if (entryPrice == null && startingOrderRequired)
 	{
@@ -324,21 +324,21 @@ function tickerUpdated(error, data)
 			console.log("     Entry: $" + entryPrice + "\n   Current: $" + buyPrice + "\n    Change: $" + change + "\nChange (%): " + (change/entryPrice) * 100 + "%\n");
 		}
 
-		if (buyPrice >= minimumPriceToSell && !orderRequired)
+		if (likelyPriceToBuy >= minimumPriceToSell && !orderRequired)
 		{
 			sellAtPrice(likelyPriceToSell);
 		}
-		else if (sellPrice <= maximumPriceToBuy && orderRequired)
+		else if (likelyPriceToSell <= maximumPriceToBuy && orderRequired)
 		{
 			enterAtPrice(likelyPriceToBuy);
 		}
-		else if (buyPrice <= entryPrice * (1.00 - dropExitThreshold))
+		else if (likelyPriceToBuy <= entryPrice * (1.00 - dropExitThreshold))
 		{
 			sellAtPrice(likelyPriceToSell);
 		}
-		else if (buyPrice >= entryPrice * (1.00 + positiveVarianceThreshold))
+		else if (likelyPriceToBuy >= entryPrice * (1.00 + positiveVarianceThreshold))
 		{
-			console.log("Run is occurring; re-basing entry price to " + buyPrice + ".");
+			console.log("Run is occurring; re-basing entry price to " + likelyPriceToBuy + ".");
 			sendNotificationWithText('Run may be occurring. Entry price is being reset.');
 
 			entryPrice = buyPrice;
@@ -367,11 +367,18 @@ function enterAtPrice(price)
 				console.log(err);
 				return;
 			}
+			else if (data['success'] === 0)
+			{
+				console.log('Error trading: ' + data['error']);
+				return;
+			}
+
+			console.log(data);
 
 			var response = data['return'];
 			var orderID = response['order_id'];
 
-			if (orderID === 0)
+			if (response['received'] >= (0.5 * activeBitcoinQuantity) || orderID === 0)
 			{
 				boughtSuccessfully(price);
 			}
@@ -440,11 +447,18 @@ function sellAtPrice(price)
 				console.log(err);
 				return;
 			}
+			else if (data['success'] === 0)
+			{
+				console.log('Error trading: ' + data['error']);
+				return;
+			}
+
+			console.log(data);
 
 			var response = data['return'];
 			var orderID = response['order_id'];
 
-			if (orderID === 0)
+			if (response['received'] >= (activeBitcoinQuantity * 0.5 * price) || orderID === 0)
 			{
 				soldSuccessfully(price);
 			}
