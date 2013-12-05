@@ -363,7 +363,7 @@ function enterAtPrice(price)
 
 	if (config.live)
 	{
-		console.log('Buying...');
+		console.log('Buying ' + activeBitcoinQuantity + ' bitcoins...');
 
 		btceClient.trade({'pair': 'btc_usd', 'type': 'buy', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
 		{
@@ -383,25 +383,25 @@ function enterAtPrice(price)
 			var response = data['return'];
 			var orderID = response['order_id'];
 
-			if (response['received'] >= (0.5 * activeBitcoinQuantity) || orderID === 0)
-			{
+			// if (response['received'] >= (0.5 * activeBitcoinQuantity) || orderID === 0)
+			// {
 				boughtSuccessfully(price);
-			}
-			else
-			{
-				console.log('Cancelling...');
+			// }
+			// else
+			// {
+			// 	console.log('Cancelling...');
 
-				btceClient.cancelOrder(orderID, function(err, data)
-				{
-					if (err)
-					{
-						console.log(err);
-						return;
-					}
+			// 	btceClient.cancelOrder(orderID, function(err, data)
+			// 	{
+			// 		if (err)
+			// 		{
+			// 			console.log(err);
+			// 			return;
+			// 		}
 
-					console.log('Cancelled.');
-				});
-			}
+			// 		console.log('Cancelled.');
+			// 	});
+			// }
 		});
 	}
 	else
@@ -443,7 +443,7 @@ function sellAtPrice(price)
 {
 	if (config.live)
 	{
-		console.log('Selling...');
+		console.log('Selling ' + activeBitcoinQuantity + ' bitcoins...');
 
 		btceClient.trade({'pair': 'btc_usd', 'type': 'sell', 'rate': price, 'amount': activeBitcoinQuantity}, function(err, data)
 		{
@@ -463,25 +463,25 @@ function sellAtPrice(price)
 			var response = data['return'];
 			var orderID = response['order_id'];
 
-			if (response['received'] >= (activeBitcoinQuantity * 0.5 * price) || orderID === 0)
-			{
+			// if (response['received'] >= (activeBitcoinQuantity * 0.5 * price) || orderID === 0)
+			// {
 				soldSuccessfully(price);
-			}
-			else
-			{
-				console.log('Cancelling...');
+			// }
+			// else
+			// {
+			// 	console.log('Cancelling...');
 
-				btceClient.cancelOrder(orderID, function(err, data)
-				{
-					console.log('Cancelled.');
+			// 	btceClient.cancelOrder(orderID, function(err, data)
+			// 	{
+			// 		console.log('Cancelled.');
 
-					if (err)
-					{
-						console.log(err);
-						return;
-					}
-				});
-			}
+			// 		if (err)
+			// 		{
+			// 			console.log(err);
+			// 			return;
+			// 		}
+			// 	});
+			// }
 			});
 	}
 	else
