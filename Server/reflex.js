@@ -292,13 +292,17 @@ function tickerUpdated(error, data)
 	var recentLow = ticker['low'];
 	var recentVolume = ticker['volume'];
 	var sellPrice = ticker['sell'];
-	var buyPrice = ticker['buy']
+	var buyPrice = ticker['buy'];
+
+	var likelyPriceToBuy = sellPrice + 0.01;
+	var likelyPriceToSell = buyPrice - 0.01;
 
 	if (entryPrice == null && startingOrderRequired)
 	{
 		console.log('Placing initial order...');
+		sendNotificationWithText('Placing initial order…')
 
-		enterAtPrice(lastPrice); // Place the initial order.
+		enterAtPrice(likelyPriceToBuy); // Place the initial order.
 	}
 	else if (entryPrice != null)
 	{
@@ -322,19 +326,20 @@ function tickerUpdated(error, data)
 
 		if (buyPrice >= minimumPriceToSell && !orderRequired)
 		{
-			sellAtPrice(buyPrice);
+			sellAtPrice(likelyPriceToSell);
 		}
 		else if (sellPrice <= maximumPriceToBuy && orderRequired)
 		{
-			enterAtPrice(sellPrice + 0.01);
+			enterAtPrice(likelyPriceToBuy);
 		}
 		else if (buyPrice <= entryPrice * (1.00 - dropExitThreshold))
 		{
-			sellAtPrice(buyPrice - 0.01);
+			sellAtPrice(likelyPriceToSell);
 		}
 		else if (buyPrice >= entryPrice * (1.00 + positiveVarianceThreshold))
 		{
 			console.log("Run is occurring; re-basing entry price to " + buyPrice + ".");
+			sendNotificationWithText('Run may be occurring. Entry price is being reset.');
 
 			entryPrice = buyPrice;
 		}
@@ -364,7 +369,7 @@ function enterAtPrice(price)
 			}
 
 			var response = data['return'];
-			var orderID = resposne['order_id'];
+			var orderID = response['order_id'];
 
 			if (orderID === 0)
 			{
@@ -402,6 +407,8 @@ function boughtSuccessfully(price)
 	marketEntered(null, {"price": price});
 
 	commissionedEventOccurred(price);
+
+	sendNotificationWithText('Bought ' + activeBitcoinQuantity + ' BTC successfully at $' + price + '.');
 }
 
 function marketEntered(error, result)
@@ -435,7 +442,7 @@ function sellAtPrice(price)
 			}
 
 			var response = data['return'];
-			var orderID = resposne['order_id'];
+			var orderID = response['order_id'];
 
 			if (orderID === 0)
 			{
@@ -482,6 +489,8 @@ function soldSuccessfully(price)
 	saleInProgress = true;
 
 	commissionedEventOccurred(price);
+
+	sendNotificationWithText('Sold ' + activeBitcoinQuantity + ' BTC successfully at $' + price + '.');
 }
 
 function commissionedEventOccurred(price)
