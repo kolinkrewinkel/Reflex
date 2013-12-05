@@ -59,8 +59,6 @@ static NSString *RFXFooterCellIdentifier = @"DoneCell";
     [SSKeychain setPassword:password forService:server account:username];
 
     [self.navigationController setViewControllers:@[[[RFXOverviewViewController alloc] initWithStyle:UITableViewStyleGrouped]] animated:YES];
-
-    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
 }
 
 #pragma mark - UITableViewDataSource

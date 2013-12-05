@@ -127,6 +127,11 @@ function sendNotificationWithText(text)
 {
 	client.smembers("device_ids", 0, -1, function(err, identifiers)
 	{
+		if (err || identifiers == null)
+		{
+			return;
+		}
+
 		var expiration = Math.floor(Date.now() / 1000) + 3600;
 
 		for (var idx = 0, len = identifiers.length; idx < len; idx++)
