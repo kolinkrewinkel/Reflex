@@ -125,7 +125,7 @@ app.post('/reflex/volume', function(request, response)
 
 function sendNotificationWithText(text)
 {
-	client.smembers("device_ids", 0, -1, function(err, identifiers)
+	client.smembers("device_ids", function(err, identifiers)
 	{
 		if (err || identifiers == null)
 		{

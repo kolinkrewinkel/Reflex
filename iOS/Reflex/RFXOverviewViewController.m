@@ -47,9 +47,9 @@
     self.volume = @"";
 
     self.quantityStepper = [[UIStepper alloc] init];
-    self.quantityStepper.maximumValue = 50;
+    self.quantityStepper.maximumValue = 100;
     self.quantityStepper.minimumValue = 0.1;
-    self.quantityStepper.stepValue = 0.1;
+    self.quantityStepper.stepValue = 0.05;
     [self.quantityStepper addTarget:self action:@selector(stepperChanged:) forControlEvents:UIControlEventValueChanged];
 
     self.title = @"Reflex";
